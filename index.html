@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e7c68" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="A private, offline-ready daily affirmation PWA." />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Affirmation" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>Daily Affirmation</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#affirmationText">Skip to affirmation</a>
+
+    <header class="top-bar">
+      <div>
+        <p class="eyebrow" id="todayLabel"></p>
+        <h1>Daily Affirmation</h1>
+      </div>
+      <button class="icon-button" type="button" id="themeQuickButton" aria-label="Toggle dark mode">◐</button>
+    </header>
+
+    <nav class="tab-bar" aria-label="Primary">
+      <button type="button" class="tab-button is-active" data-view="home">Home</button>
+      <button type="button" class="tab-button" data-view="favorites">Favorites</button>
+      <button type="button" class="tab-button" data-view="reflections">Journal</button>
+      <button type="button" class="tab-button" data-view="search">Search</button>
+      <button type="button" class="tab-button" data-view="settings">Settings</button>
+    </nav>
+
+    <main class="app-shell">
+      <section class="view is-active" id="homeView" aria-labelledby="homeHeading">
+        <div class="hero">
+          <p class="greeting" id="greetingText"></p>
+          <h2 id="homeHeading">Today’s affirmation</h2>
+        </div>
+
+        <section class="breath-panel" id="breathPanel" hidden aria-labelledby="breathHeading">
+          <h3 id="breathHeading">Take one slow breath</h3>
+          <p>When you are ready, reveal today’s affirmation.</p>
+          <button type="button" id="revealButton">Reveal Today’s Affirmation</button>
+        </section>
+
+        <article class="affirmation-card" id="affirmationCard">
+          <p class="category-pill" id="categoryLabel"></p>
+          <blockquote>
+            <p class="affirmation" id="affirmationText" tabindex="-1"></p>
+          </blockquote>
+        </article>
+
+        <div class="primary-actions" aria-label="Affirmation actions">
+          <button type="button" id="newAffirmationButton">New Affirmation</button>
+          <button type="button" id="copyButton">Copy</button>
+          <button type="button" id="favoriteButton" aria-pressed="false">Favorite</button>
+        </div>
+
+        <div class="voice-actions">
+          <button type="button" id="speakButton">Play</button>
+          <button type="button" id="stopSpeakButton">Stop</button>
+        </div>
+
+        <section class="feedback-group" aria-labelledby="feedbackHeading">
+          <h3 id="feedbackHeading">Gentle Growth feedback</h3>
+          <div class="segmented">
+            <button type="button" data-feedback="helped">This helped me</button>
+            <button type="button" data-feedback="neutral">Neutral</button>
+            <button type="button" data-feedback="not-today">Not today</button>
+          </div>
+        </section>
+
+        <section class="journal-card" aria-labelledby="reflectionHeading">
+          <div class="section-heading">
+            <h3 id="reflectionHeading">Today’s reflection</h3>
+            <p id="reflectionContext"></p>
+          </div>
+          <label for="reflectionText">Reflection for this affirmation</label>
+          <textarea id="reflectionText" rows="7" placeholder="Write anything you want to remember from today."></textarea>
+        </section>
+      </section>
+
+      <section class="view" id="favoritesView" aria-labelledby="favoritesHeading" hidden>
+        <div class="section-heading">
+          <h2 id="favoritesHeading">Favorites</h2>
+          <p>Saved on this device only.</p>
+        </div>
+        <label for="favoriteSearch">Search favorites</label>
+        <input id="favoriteSearch" type="search" autocomplete="off" />
+        <div class="result-list" id="favoritesList" aria-live="polite"></div>
+      </section>
+
+      <section class="view" id="reflectionsView" aria-labelledby="reflectionsHeading" hidden>
+        <div class="section-heading">
+          <h2 id="reflectionsHeading">Saved reflections</h2>
+          <p>Return to previous notes saved on this device.</p>
+        </div>
+        <label for="reflectionSearch">Search reflections</label>
+        <input id="reflectionSearch" type="search" autocomplete="off" />
+        <div class="result-list" id="reflectionsList" aria-live="polite"></div>
+      </section>
+
+      <section class="view" id="searchView" aria-labelledby="searchHeading" hidden>
+        <div class="section-heading">
+          <h2 id="searchHeading">Search affirmations</h2>
+          <p>Search all categories, including optional Faith affirmations.</p>
+        </div>
+        <label for="affirmationSearch">Keyword</label>
+        <input id="affirmationSearch" type="search" autocomplete="off" />
+        <fieldset>
+          <legend>Search categories</legend>
+          <div class="checkbox-grid" id="searchCategoryFilters"></div>
+        </fieldset>
+        <div class="result-list" id="searchResults" aria-live="polite"></div>
+      </section>
+
+      <section class="view" id="settingsView" aria-labelledby="settingsHeading" hidden>
+        <div class="section-heading">
+          <h2 id="settingsHeading">Settings</h2>
+          <p>Preferences stay on this device.</p>
+        </div>
+
+        <form id="settingsForm">
+          <label for="themeSelect">Theme</label>
+          <select id="themeSelect">
+            <option value="system">System theme</option>
+            <option value="light">Light mode</option>
+            <option value="dark">Dark mode</option>
+          </select>
+
+          <label for="textSizeRange">Text size</label>
+          <input id="textSizeRange" type="range" min="0" max="3" step="1" />
+
+          <label class="check-row">
+            <input id="highContrastToggle" type="checkbox" />
+            <span>High contrast</span>
+          </label>
+
+          <label class="check-row">
+            <input id="breatheToggle" type="checkbox" />
+            <span>Breathe First</span>
+          </label>
+
+          <label class="check-row">
+            <input id="readAloudToggle" type="checkbox" />
+            <span>Read aloud controls</span>
+          </label>
+
+          <fieldset>
+            <legend>Affirmation categories</legend>
+            <p class="field-note">Faith is optional and can be selected here.</p>
+            <div class="checkbox-grid" id="settingsCategoryFilters"></div>
+          </fieldset>
+        </form>
+
+        <section class="settings-card" aria-labelledby="reminderHeading">
+          <h3 id="reminderHeading">Daily reminder preparation</h3>
+          <label class="check-row">
+            <input id="reminderToggle" type="checkbox" />
+            <span>Prepare a daily reminder preference</span>
+          </label>
+          <label for="reminderTime">Preferred time</label>
+          <input id="reminderTime" type="time" />
+          <button type="button" id="checkNotificationsButton">Check notification support</button>
+          <p class="field-note" id="notificationMessage"></p>
+        </section>
+
+        <section class="danger-zone" aria-labelledby="clearDataHeading">
+          <h3 id="clearDataHeading">Clear local app data</h3>
+          <p>This removes favorites, reflections, settings, and feedback from this browser.</p>
+          <button type="button" id="clearDataButton">Clear local app data</button>
+        </section>
+      </section>
+    </main>
+
+    <p class="status" id="statusMessage" role="status" aria-live="polite"></p>
+    <script src="app.js"></script>
+  </body>
+</html>

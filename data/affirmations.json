@@ -1,0 +1,2615 @@
+{
+  "version": "1.0.0",
+  "categories": {
+    "general": "General",
+    "gratitude": "Gratitude",
+    "faith": "Faith",
+    "anxiety_calm": "Anxiety and Calm",
+    "healing": "Healing",
+    "confidence": "Confidence",
+    "relationships": "Relationships",
+    "happiness": "Happiness"
+  },
+  "affirmations": [
+    {
+      "id": "general-001",
+      "category": "general",
+      "text": "I can meet this moment with patience and that is enough for now."
+    },
+    {
+      "id": "general-002",
+      "category": "general",
+      "text": "I am allowed to begin with honest kindness while staying rooted in my values."
+    },
+    {
+      "id": "general-003",
+      "category": "general",
+      "text": "Today I can choose with gentleness without turning against myself."
+    },
+    {
+      "id": "general-004",
+      "category": "general",
+      "text": "I have enough steadiness one breath at a time while I keep moving forward."
+    },
+    {
+      "id": "general-005",
+      "category": "general",
+      "text": "I can take one step with steady attention as I remember I am still becoming."
+    },
+    {
+      "id": "general-006",
+      "category": "general",
+      "text": "My attention can return without rushing and choose a helpful next action."
+    },
+    {
+      "id": "general-007",
+      "category": "general",
+      "text": "I am learning to trust without needing perfection and let the next step be simple."
+    },
+    {
+      "id": "general-008",
+      "category": "general",
+      "text": "I can make room with care and that is enough for now."
+    },
+    {
+      "id": "general-009",
+      "category": "general",
+      "text": "I am present with at a human pace while staying rooted in my values."
+    },
+    {
+      "id": "general-010",
+      "category": "general",
+      "text": "I can carry myself with patience without turning against myself."
+    },
+    {
+      "id": "general-011",
+      "category": "general",
+      "text": "This day can hold with honest kindness as I listen to what matters."
+    },
+    {
+      "id": "general-012",
+      "category": "general",
+      "text": "I can honor with gentleness and give myself permission to learn."
+    },
+    {
+      "id": "general-013",
+      "category": "general",
+      "text": "I am capable of noticing one breath at a time and choose a helpful next action."
+    },
+    {
+      "id": "general-014",
+      "category": "general",
+      "text": "I can meet this moment with steady attention and let the next step be simple."
+    },
+    {
+      "id": "general-015",
+      "category": "general",
+      "text": "I am allowed to begin without rushing and that is enough for now."
+    },
+    {
+      "id": "general-016",
+      "category": "general",
+      "text": "Today I can choose without needing perfection as I remember I am still becoming."
+    },
+    {
+      "id": "general-017",
+      "category": "general",
+      "text": "I have enough steadiness with care as I make space for what is true."
+    },
+    {
+      "id": "general-018",
+      "category": "general",
+      "text": "I can take one step at a human pace as I listen to what matters."
+    },
+    {
+      "id": "general-019",
+      "category": "general",
+      "text": "My attention can return with patience and give myself permission to learn."
+    },
+    {
+      "id": "general-020",
+      "category": "general",
+      "text": "I am learning to trust with honest kindness and choose a helpful next action."
+    },
+    {
+      "id": "general-021",
+      "category": "general",
+      "text": "I can make room with gentleness without turning against myself."
+    },
+    {
+      "id": "general-022",
+      "category": "general",
+      "text": "I am present with one breath at a time while I keep moving forward."
+    },
+    {
+      "id": "general-023",
+      "category": "general",
+      "text": "I can carry myself with steady attention as I remember I am still becoming."
+    },
+    {
+      "id": "general-024",
+      "category": "general",
+      "text": "This day can hold without rushing as I make space for what is true."
+    },
+    {
+      "id": "general-025",
+      "category": "general",
+      "text": "I can honor without needing perfection as I listen to what matters."
+    },
+    {
+      "id": "general-026",
+      "category": "general",
+      "text": "I am capable of noticing with care and that is enough for now."
+    },
+    {
+      "id": "general-027",
+      "category": "general",
+      "text": "I can meet this moment at a human pace while staying rooted in my values."
+    },
+    {
+      "id": "general-028",
+      "category": "general",
+      "text": "I am allowed to begin with patience without turning against myself."
+    },
+    {
+      "id": "general-029",
+      "category": "general",
+      "text": "Today I can choose with honest kindness while I keep moving forward."
+    },
+    {
+      "id": "general-030",
+      "category": "general",
+      "text": "I have enough steadiness with gentleness as I remember I am still becoming."
+    },
+    {
+      "id": "general-031",
+      "category": "general",
+      "text": "I can take one step one breath at a time and choose a helpful next action."
+    },
+    {
+      "id": "general-032",
+      "category": "general",
+      "text": "My attention can return with steady attention and let the next step be simple."
+    },
+    {
+      "id": "general-033",
+      "category": "general",
+      "text": "I am learning to trust without rushing and that is enough for now."
+    },
+    {
+      "id": "general-034",
+      "category": "general",
+      "text": "I can make room without needing perfection while staying rooted in my values."
+    },
+    {
+      "id": "general-035",
+      "category": "general",
+      "text": "I am present with with care without turning against myself."
+    },
+    {
+      "id": "general-036",
+      "category": "general",
+      "text": "I can carry myself at a human pace as I listen to what matters."
+    },
+    {
+      "id": "general-037",
+      "category": "general",
+      "text": "This day can hold with patience and give myself permission to learn."
+    },
+    {
+      "id": "general-038",
+      "category": "general",
+      "text": "I can honor with honest kindness and choose a helpful next action."
+    },
+    {
+      "id": "general-039",
+      "category": "general",
+      "text": "I am capable of noticing with gentleness and let the next step be simple."
+    },
+    {
+      "id": "general-040",
+      "category": "general",
+      "text": "I can meet this moment one breath at a time and that is enough for now."
+    },
+    {
+      "id": "general-041",
+      "category": "general",
+      "text": "I am allowed to begin with steady attention as I remember I am still becoming."
+    },
+    {
+      "id": "general-042",
+      "category": "general",
+      "text": "Today I can choose without rushing as I make space for what is true."
+    },
+    {
+      "id": "general-043",
+      "category": "general",
+      "text": "I have enough steadiness without needing perfection as I listen to what matters."
+    },
+    {
+      "id": "general-044",
+      "category": "general",
+      "text": "I can take one step with care and give myself permission to learn."
+    },
+    {
+      "id": "general-045",
+      "category": "general",
+      "text": "My attention can return at a human pace and choose a helpful next action."
+    },
+    {
+      "id": "general-046",
+      "category": "general",
+      "text": "I am learning to trust with patience without turning against myself."
+    },
+    {
+      "id": "general-047",
+      "category": "general",
+      "text": "I can make room with honest kindness while I keep moving forward."
+    },
+    {
+      "id": "general-048",
+      "category": "general",
+      "text": "I am present with with gentleness as I remember I am still becoming."
+    },
+    {
+      "id": "general-049",
+      "category": "general",
+      "text": "I can carry myself one breath at a time as I make space for what is true."
+    },
+    {
+      "id": "general-050",
+      "category": "general",
+      "text": "This day can hold with steady attention as I listen to what matters."
+    },
+    {
+      "id": "general-051",
+      "category": "general",
+      "text": "I can honor without rushing and that is enough for now."
+    },
+    {
+      "id": "general-052",
+      "category": "general",
+      "text": "I am capable of noticing without needing perfection while staying rooted in my values."
+    },
+    {
+      "id": "general-053",
+      "category": "general",
+      "text": "I can meet this moment with care without turning against myself."
+    },
+    {
+      "id": "general-054",
+      "category": "general",
+      "text": "I am allowed to begin at a human pace while I keep moving forward."
+    },
+    {
+      "id": "general-055",
+      "category": "general",
+      "text": "Today I can choose with patience as I remember I am still becoming."
+    },
+    {
+      "id": "general-056",
+      "category": "general",
+      "text": "I have enough steadiness with honest kindness and choose a helpful next action."
+    },
+    {
+      "id": "general-057",
+      "category": "general",
+      "text": "I can take one step with gentleness and let the next step be simple."
+    },
+    {
+      "id": "general-058",
+      "category": "general",
+      "text": "My attention can return one breath at a time and that is enough for now."
+    },
+    {
+      "id": "general-059",
+      "category": "general",
+      "text": "I am learning to trust with steady attention while staying rooted in my values."
+    },
+    {
+      "id": "general-060",
+      "category": "general",
+      "text": "I can make room without rushing without turning against myself."
+    },
+    {
+      "id": "general-061",
+      "category": "general",
+      "text": "I am present with without needing perfection as I listen to what matters."
+    },
+    {
+      "id": "general-062",
+      "category": "general",
+      "text": "I can carry myself with care and give myself permission to learn."
+    },
+    {
+      "id": "general-063",
+      "category": "general",
+      "text": "This day can hold at a human pace and choose a helpful next action."
+    },
+    {
+      "id": "general-064",
+      "category": "general",
+      "text": "I can honor with patience and let the next step be simple."
+    },
+    {
+      "id": "general-065",
+      "category": "general",
+      "text": "I am capable of noticing with honest kindness and that is enough for now."
+    },
+    {
+      "id": "gratitude-001",
+      "category": "gratitude",
+      "text": "I can notice small signs of support without needing the whole day to be perfect."
+    },
+    {
+      "id": "gratitude-002",
+      "category": "gratitude",
+      "text": "I welcome quiet moments of beauty without forcing cheerfulness."
+    },
+    {
+      "id": "gratitude-003",
+      "category": "gratitude",
+      "text": "I am grateful for the lessons that helped me grow while making room for every feeling."
+    },
+    {
+      "id": "gratitude-004",
+      "category": "gratitude",
+      "text": "Today I can appreciate the effort behind good things and let that soften my pace."
+    },
+    {
+      "id": "gratitude-005",
+      "category": "gratitude",
+      "text": "I can pause for kindness when it appears and let enoughness be visible."
+    },
+    {
+      "id": "gratitude-006",
+      "category": "gratitude",
+      "text": "I let myself receive the care that reaches me as something worth remembering."
+    },
+    {
+      "id": "gratitude-007",
+      "category": "gratitude",
+      "text": "I can be thankful for the breath in my body with an open and steady heart."
+    },
+    {
+      "id": "gratitude-008",
+      "category": "gratitude",
+      "text": "I make room for ordinary moments of ease without needing the whole day to be perfect."
+    },
+    {
+      "id": "gratitude-009",
+      "category": "gratitude",
+      "text": "I can recognize the people who mean well without forcing cheerfulness."
+    },
+    {
+      "id": "gratitude-010",
+      "category": "gratitude",
+      "text": "I honor small signs of support while making room for every feeling."
+    },
+    {
+      "id": "gratitude-011",
+      "category": "gratitude",
+      "text": "I can hold quiet moments of beauty as a real part of my life."
+    },
+    {
+      "id": "gratitude-012",
+      "category": "gratitude",
+      "text": "I choose to notice the lessons that helped me grow as a quiet form of strength."
+    },
+    {
+      "id": "gratitude-013",
+      "category": "gratitude",
+      "text": "I can notice the effort behind good things as something worth remembering."
+    },
+    {
+      "id": "gratitude-014",
+      "category": "gratitude",
+      "text": "I welcome kindness when it appears with an open and steady heart."
+    },
+    {
+      "id": "gratitude-015",
+      "category": "gratitude",
+      "text": "I am grateful for the care that reaches me without needing the whole day to be perfect."
+    },
+    {
+      "id": "gratitude-016",
+      "category": "gratitude",
+      "text": "Today I can appreciate the breath in my body and let enoughness be visible."
+    },
+    {
+      "id": "gratitude-017",
+      "category": "gratitude",
+      "text": "I can pause for ordinary moments of ease and allow it to matter."
+    },
+    {
+      "id": "gratitude-018",
+      "category": "gratitude",
+      "text": "I let myself receive the people who mean well as a real part of my life."
+    },
+    {
+      "id": "gratitude-019",
+      "category": "gratitude",
+      "text": "I can be thankful for small signs of support as a quiet form of strength."
+    },
+    {
+      "id": "gratitude-020",
+      "category": "gratitude",
+      "text": "I make room for quiet moments of beauty as something worth remembering."
+    },
+    {
+      "id": "gratitude-021",
+      "category": "gratitude",
+      "text": "I can recognize the lessons that helped me grow while making room for every feeling."
+    },
+    {
+      "id": "gratitude-022",
+      "category": "gratitude",
+      "text": "I honor the effort behind good things and let that soften my pace."
+    },
+    {
+      "id": "gratitude-023",
+      "category": "gratitude",
+      "text": "I can hold kindness when it appears and let enoughness be visible."
+    },
+    {
+      "id": "gratitude-024",
+      "category": "gratitude",
+      "text": "I choose to notice the care that reaches me and allow it to matter."
+    },
+    {
+      "id": "gratitude-025",
+      "category": "gratitude",
+      "text": "I can notice the breath in my body as a real part of my life."
+    },
+    {
+      "id": "gratitude-026",
+      "category": "gratitude",
+      "text": "I welcome ordinary moments of ease without needing the whole day to be perfect."
+    },
+    {
+      "id": "gratitude-027",
+      "category": "gratitude",
+      "text": "I am grateful for the people who mean well without forcing cheerfulness."
+    },
+    {
+      "id": "gratitude-028",
+      "category": "gratitude",
+      "text": "Today I can appreciate small signs of support while making room for every feeling."
+    },
+    {
+      "id": "gratitude-029",
+      "category": "gratitude",
+      "text": "I can pause for quiet moments of beauty and let that soften my pace."
+    },
+    {
+      "id": "gratitude-030",
+      "category": "gratitude",
+      "text": "I let myself receive the lessons that helped me grow and let enoughness be visible."
+    },
+    {
+      "id": "gratitude-031",
+      "category": "gratitude",
+      "text": "I can be thankful for the effort behind good things as something worth remembering."
+    },
+    {
+      "id": "gratitude-032",
+      "category": "gratitude",
+      "text": "I make room for kindness when it appears with an open and steady heart."
+    },
+    {
+      "id": "gratitude-033",
+      "category": "gratitude",
+      "text": "I can recognize the care that reaches me without needing the whole day to be perfect."
+    },
+    {
+      "id": "gratitude-034",
+      "category": "gratitude",
+      "text": "I honor the breath in my body without forcing cheerfulness."
+    },
+    {
+      "id": "gratitude-035",
+      "category": "gratitude",
+      "text": "I can hold ordinary moments of ease while making room for every feeling."
+    },
+    {
+      "id": "gratitude-036",
+      "category": "gratitude",
+      "text": "I choose to notice the people who mean well as a real part of my life."
+    },
+    {
+      "id": "gratitude-037",
+      "category": "gratitude",
+      "text": "I can notice small signs of support as a quiet form of strength."
+    },
+    {
+      "id": "gratitude-038",
+      "category": "gratitude",
+      "text": "I welcome quiet moments of beauty as something worth remembering."
+    },
+    {
+      "id": "gratitude-039",
+      "category": "gratitude",
+      "text": "I am grateful for the lessons that helped me grow with an open and steady heart."
+    },
+    {
+      "id": "gratitude-040",
+      "category": "gratitude",
+      "text": "Today I can appreciate the effort behind good things without needing the whole day to be perfect."
+    },
+    {
+      "id": "gratitude-041",
+      "category": "gratitude",
+      "text": "I let myself receive the care that reaches me and allow it to matter."
+    },
+    {
+      "id": "gratitude-042",
+      "category": "gratitude",
+      "text": "I can be thankful for the breath in my body as a real part of my life."
+    },
+    {
+      "id": "gratitude-043",
+      "category": "gratitude",
+      "text": "I make room for ordinary moments of ease as a quiet form of strength."
+    },
+    {
+      "id": "gratitude-044",
+      "category": "gratitude",
+      "text": "I can recognize the people who mean well as something worth remembering."
+    },
+    {
+      "id": "gratitude-045",
+      "category": "gratitude",
+      "text": "I can hold quiet moments of beauty and let that soften my pace."
+    },
+    {
+      "id": "gratitude-046",
+      "category": "gratitude",
+      "text": "I choose to notice the lessons that helped me grow and let enoughness be visible."
+    },
+    {
+      "id": "gratitude-047",
+      "category": "gratitude",
+      "text": "I can notice the effort behind good things and allow it to matter."
+    },
+    {
+      "id": "gratitude-048",
+      "category": "gratitude",
+      "text": "I welcome kindness when it appears as a real part of my life."
+    },
+    {
+      "id": "gratitude-049",
+      "category": "gratitude",
+      "text": "Today I can appreciate the breath in my body without forcing cheerfulness."
+    },
+    {
+      "id": "gratitude-050",
+      "category": "gratitude",
+      "text": "I can pause for ordinary moments of ease while making room for every feeling."
+    },
+    {
+      "id": "gratitude-051",
+      "category": "gratitude",
+      "text": "I let myself receive the people who mean well and let that soften my pace."
+    },
+    {
+      "id": "gratitude-052",
+      "category": "gratitude",
+      "text": "I can be thankful for small signs of support and let enoughness be visible."
+    },
+    {
+      "id": "gratitude-053",
+      "category": "gratitude",
+      "text": "I can recognize the lessons that helped me grow with an open and steady heart."
+    },
+    {
+      "id": "gratitude-054",
+      "category": "gratitude",
+      "text": "I honor the effort behind good things without needing the whole day to be perfect."
+    },
+    {
+      "id": "gratitude-055",
+      "category": "gratitude",
+      "text": "I can hold kindness when it appears without forcing cheerfulness."
+    },
+    {
+      "id": "gratitude-056",
+      "category": "gratitude",
+      "text": "I choose to notice the care that reaches me while making room for every feeling."
+    },
+    {
+      "id": "gratitude-057",
+      "category": "gratitude",
+      "text": "I welcome ordinary moments of ease as a quiet form of strength."
+    },
+    {
+      "id": "gratitude-058",
+      "category": "gratitude",
+      "text": "I am grateful for the people who mean well as something worth remembering."
+    },
+    {
+      "id": "gratitude-059",
+      "category": "gratitude",
+      "text": "Today I can appreciate small signs of support with an open and steady heart."
+    },
+    {
+      "id": "gratitude-060",
+      "category": "gratitude",
+      "text": "I can pause for quiet moments of beauty without needing the whole day to be perfect."
+    },
+    {
+      "id": "gratitude-061",
+      "category": "gratitude",
+      "text": "I can be thankful for the effort behind good things and allow it to matter."
+    },
+    {
+      "id": "gratitude-062",
+      "category": "gratitude",
+      "text": "I make room for kindness when it appears as a real part of my life."
+    },
+    {
+      "id": "gratitude-063",
+      "category": "gratitude",
+      "text": "I can recognize the care that reaches me as a quiet form of strength."
+    },
+    {
+      "id": "gratitude-064",
+      "category": "gratitude",
+      "text": "I honor the breath in my body as something worth remembering."
+    },
+    {
+      "id": "gratitude-065",
+      "category": "gratitude",
+      "text": "I choose to notice the people who mean well and let that soften my pace."
+    },
+    {
+      "id": "faith-001",
+      "category": "faith",
+      "text": "I can rest in the presence of the Divine without needing every answer today."
+    },
+    {
+      "id": "faith-002",
+      "category": "faith",
+      "text": "I am held by hope that does not demand certainty while staying kind to myself and others."
+    },
+    {
+      "id": "faith-003",
+      "category": "faith",
+      "text": "Today I make room for compassion rooted in faith and let my spirit breathe."
+    },
+    {
+      "id": "faith-004",
+      "category": "faith",
+      "text": "I can bring this day to mercy for this moment as I take the next faithful step."
+    },
+    {
+      "id": "faith-005",
+      "category": "faith",
+      "text": "I trust that grace can meet the holy in ordinary things and receive what is good."
+    },
+    {
+      "id": "faith-006",
+      "category": "faith",
+      "text": "I can lean toward sacred patience as a source of comfort and care."
+    },
+    {
+      "id": "faith-007",
+      "category": "faith",
+      "text": "My faith can be peace that arrives gently while honoring my full humanity."
+    },
+    {
+      "id": "faith-008",
+      "category": "faith",
+      "text": "I can listen for a love larger than fear without needing every answer today."
+    },
+    {
+      "id": "faith-009",
+      "category": "faith",
+      "text": "I welcome a steady spiritual center while staying kind to myself and others."
+    },
+    {
+      "id": "faith-010",
+      "category": "faith",
+      "text": "I can walk with the presence of the Divine and let my spirit breathe."
+    },
+    {
+      "id": "faith-011",
+      "category": "faith",
+      "text": "I am open to hope that does not demand certainty with humility and courage."
+    },
+    {
+      "id": "faith-012",
+      "category": "faith",
+      "text": "I can seek compassion rooted in faith with an open heart."
+    },
+    {
+      "id": "faith-013",
+      "category": "faith",
+      "text": "I can rest in mercy for this moment as a source of comfort and care."
+    },
+    {
+      "id": "faith-014",
+      "category": "faith",
+      "text": "I am held by the holy in ordinary things while honoring my full humanity."
+    },
+    {
+      "id": "faith-015",
+      "category": "faith",
+      "text": "Today I make room for sacred patience without needing every answer today."
+    },
+    {
+      "id": "faith-016",
+      "category": "faith",
+      "text": "I can bring this day to peace that arrives gently and receive what is good."
+    },
+    {
+      "id": "faith-017",
+      "category": "faith",
+      "text": "I trust that grace can meet a love larger than fear without pressure to perform belief."
+    },
+    {
+      "id": "faith-018",
+      "category": "faith",
+      "text": "I can lean toward a steady spiritual center with humility and courage."
+    },
+    {
+      "id": "faith-019",
+      "category": "faith",
+      "text": "My faith can be the presence of the Divine with an open heart."
+    },
+    {
+      "id": "faith-020",
+      "category": "faith",
+      "text": "I can listen for hope that does not demand certainty as a source of comfort and care."
+    },
+    {
+      "id": "faith-021",
+      "category": "faith",
+      "text": "I welcome compassion rooted in faith and let my spirit breathe."
+    },
+    {
+      "id": "faith-022",
+      "category": "faith",
+      "text": "I can walk with mercy for this moment as I take the next faithful step."
+    },
+    {
+      "id": "faith-023",
+      "category": "faith",
+      "text": "I am open to the holy in ordinary things and receive what is good."
+    },
+    {
+      "id": "faith-024",
+      "category": "faith",
+      "text": "I can seek sacred patience without pressure to perform belief."
+    },
+    {
+      "id": "faith-025",
+      "category": "faith",
+      "text": "I can rest in peace that arrives gently with humility and courage."
+    },
+    {
+      "id": "faith-026",
+      "category": "faith",
+      "text": "I am held by a love larger than fear without needing every answer today."
+    },
+    {
+      "id": "faith-027",
+      "category": "faith",
+      "text": "Today I make room for a steady spiritual center while staying kind to myself and others."
+    },
+    {
+      "id": "faith-028",
+      "category": "faith",
+      "text": "I can bring this day to the presence of the Divine and let my spirit breathe."
+    },
+    {
+      "id": "faith-029",
+      "category": "faith",
+      "text": "I trust that grace can meet hope that does not demand certainty as I take the next faithful step."
+    },
+    {
+      "id": "faith-030",
+      "category": "faith",
+      "text": "I can lean toward compassion rooted in faith and receive what is good."
+    },
+    {
+      "id": "faith-031",
+      "category": "faith",
+      "text": "My faith can be mercy for this moment as a source of comfort and care."
+    },
+    {
+      "id": "faith-032",
+      "category": "faith",
+      "text": "I can listen for the holy in ordinary things while honoring my full humanity."
+    },
+    {
+      "id": "faith-033",
+      "category": "faith",
+      "text": "I welcome sacred patience without needing every answer today."
+    },
+    {
+      "id": "faith-034",
+      "category": "faith",
+      "text": "I can walk with peace that arrives gently while staying kind to myself and others."
+    },
+    {
+      "id": "faith-035",
+      "category": "faith",
+      "text": "I am open to a love larger than fear and let my spirit breathe."
+    },
+    {
+      "id": "faith-036",
+      "category": "faith",
+      "text": "I can seek a steady spiritual center with humility and courage."
+    },
+    {
+      "id": "faith-037",
+      "category": "faith",
+      "text": "I can rest in the presence of the Divine with an open heart."
+    },
+    {
+      "id": "faith-038",
+      "category": "faith",
+      "text": "I am held by hope that does not demand certainty as a source of comfort and care."
+    },
+    {
+      "id": "faith-039",
+      "category": "faith",
+      "text": "Today I make room for compassion rooted in faith while honoring my full humanity."
+    },
+    {
+      "id": "faith-040",
+      "category": "faith",
+      "text": "I can bring this day to mercy for this moment without needing every answer today."
+    },
+    {
+      "id": "faith-041",
+      "category": "faith",
+      "text": "I can lean toward sacred patience without pressure to perform belief."
+    },
+    {
+      "id": "faith-042",
+      "category": "faith",
+      "text": "My faith can be peace that arrives gently with humility and courage."
+    },
+    {
+      "id": "faith-043",
+      "category": "faith",
+      "text": "I can listen for a love larger than fear with an open heart."
+    },
+    {
+      "id": "faith-044",
+      "category": "faith",
+      "text": "I welcome a steady spiritual center as a source of comfort and care."
+    },
+    {
+      "id": "faith-045",
+      "category": "faith",
+      "text": "I am open to hope that does not demand certainty as I take the next faithful step."
+    },
+    {
+      "id": "faith-046",
+      "category": "faith",
+      "text": "I can seek compassion rooted in faith and receive what is good."
+    },
+    {
+      "id": "faith-047",
+      "category": "faith",
+      "text": "I can rest in mercy for this moment without pressure to perform belief."
+    },
+    {
+      "id": "faith-048",
+      "category": "faith",
+      "text": "I am held by the holy in ordinary things with humility and courage."
+    },
+    {
+      "id": "faith-049",
+      "category": "faith",
+      "text": "I can bring this day to peace that arrives gently while staying kind to myself and others."
+    },
+    {
+      "id": "faith-050",
+      "category": "faith",
+      "text": "I trust that grace can meet a love larger than fear and let my spirit breathe."
+    },
+    {
+      "id": "faith-051",
+      "category": "faith",
+      "text": "I can lean toward a steady spiritual center as I take the next faithful step."
+    },
+    {
+      "id": "faith-052",
+      "category": "faith",
+      "text": "My faith can be the presence of the Divine and receive what is good."
+    },
+    {
+      "id": "faith-053",
+      "category": "faith",
+      "text": "I welcome compassion rooted in faith while honoring my full humanity."
+    },
+    {
+      "id": "faith-054",
+      "category": "faith",
+      "text": "I can walk with mercy for this moment without needing every answer today."
+    },
+    {
+      "id": "faith-055",
+      "category": "faith",
+      "text": "I am open to the holy in ordinary things while staying kind to myself and others."
+    },
+    {
+      "id": "faith-056",
+      "category": "faith",
+      "text": "I can seek sacred patience and let my spirit breathe."
+    },
+    {
+      "id": "faith-057",
+      "category": "faith",
+      "text": "I am held by a love larger than fear with an open heart."
+    },
+    {
+      "id": "faith-058",
+      "category": "faith",
+      "text": "Today I make room for a steady spiritual center as a source of comfort and care."
+    },
+    {
+      "id": "faith-059",
+      "category": "faith",
+      "text": "I can bring this day to the presence of the Divine while honoring my full humanity."
+    },
+    {
+      "id": "faith-060",
+      "category": "faith",
+      "text": "I trust that grace can meet hope that does not demand certainty without needing every answer today."
+    },
+    {
+      "id": "faith-061",
+      "category": "faith",
+      "text": "My faith can be mercy for this moment without pressure to perform belief."
+    },
+    {
+      "id": "faith-062",
+      "category": "faith",
+      "text": "I can listen for the holy in ordinary things with humility and courage."
+    },
+    {
+      "id": "faith-063",
+      "category": "faith",
+      "text": "I welcome sacred patience with an open heart."
+    },
+    {
+      "id": "faith-064",
+      "category": "faith",
+      "text": "I can walk with peace that arrives gently as a source of comfort and care."
+    },
+    {
+      "id": "faith-065",
+      "category": "faith",
+      "text": "I can seek a steady spiritual center as I take the next faithful step."
+    },
+    {
+      "id": "anxiety_calm-001",
+      "category": "anxiety_calm",
+      "text": "I can slow down for one honest breath and take the next step when I am ready."
+    },
+    {
+      "id": "anxiety_calm-002",
+      "category": "anxiety_calm",
+      "text": "I can let my body know a little more room inside and allow calm to be possible."
+    },
+    {
+      "id": "anxiety_calm-003",
+      "category": "anxiety_calm",
+      "text": "My feelings can be present without judging it without blaming myself for feeling human."
+    },
+    {
+      "id": "anxiety_calm-004",
+      "category": "anxiety_calm",
+      "text": "I can return to everything at once while staying connected to what is real."
+    },
+    {
+      "id": "anxiety_calm-005",
+      "category": "anxiety_calm",
+      "text": "I do not have to solve my shoulders and jaw even if the feeling takes time to pass."
+    },
+    {
+      "id": "anxiety_calm-006",
+      "category": "anxiety_calm",
+      "text": "I can create without letting them drive every choice as a practical act of kindness."
+    },
+    {
+      "id": "anxiety_calm-007",
+      "category": "anxiety_calm",
+      "text": "I can meet anxious thoughts that I am here now and let the present become clearer."
+    },
+    {
+      "id": "anxiety_calm-008",
+      "category": "anxiety_calm",
+      "text": "I can choose that this moment is manageable and take the next step when I am ready."
+    },
+    {
+      "id": "anxiety_calm-009",
+      "category": "anxiety_calm",
+      "text": "This breath can remind me with curiosity instead of alarm and allow calm to be possible."
+    },
+    {
+      "id": "anxiety_calm-010",
+      "category": "anxiety_calm",
+      "text": "I can soften for one honest breath without blaming myself for feeling human."
+    },
+    {
+      "id": "anxiety_calm-011",
+      "category": "anxiety_calm",
+      "text": "I can notice tension a little more room inside as I make space between thought and action."
+    },
+    {
+      "id": "anxiety_calm-012",
+      "category": "anxiety_calm",
+      "text": "I can give myself without judging it while I support myself gently."
+    },
+    {
+      "id": "anxiety_calm-013",
+      "category": "anxiety_calm",
+      "text": "I can slow down everything at once as a practical act of kindness."
+    },
+    {
+      "id": "anxiety_calm-014",
+      "category": "anxiety_calm",
+      "text": "I can let my body know my shoulders and jaw and let the present become clearer."
+    },
+    {
+      "id": "anxiety_calm-015",
+      "category": "anxiety_calm",
+      "text": "My feelings can be present without letting them drive every choice and take the next step when I am ready."
+    },
+    {
+      "id": "anxiety_calm-016",
+      "category": "anxiety_calm",
+      "text": "I can return to that I am here now even if the feeling takes time to pass."
+    },
+    {
+      "id": "anxiety_calm-017",
+      "category": "anxiety_calm",
+      "text": "I do not have to solve that this moment is manageable with care and patience."
+    },
+    {
+      "id": "anxiety_calm-018",
+      "category": "anxiety_calm",
+      "text": "I can create with curiosity instead of alarm as I make space between thought and action."
+    },
+    {
+      "id": "anxiety_calm-019",
+      "category": "anxiety_calm",
+      "text": "I can meet anxious thoughts for one honest breath while I support myself gently."
+    },
+    {
+      "id": "anxiety_calm-020",
+      "category": "anxiety_calm",
+      "text": "I can choose a little more room inside as a practical act of kindness."
+    },
+    {
+      "id": "anxiety_calm-021",
+      "category": "anxiety_calm",
+      "text": "This breath can remind me without judging it without blaming myself for feeling human."
+    },
+    {
+      "id": "anxiety_calm-022",
+      "category": "anxiety_calm",
+      "text": "I can soften everything at once while staying connected to what is real."
+    },
+    {
+      "id": "anxiety_calm-023",
+      "category": "anxiety_calm",
+      "text": "I can notice tension my shoulders and jaw even if the feeling takes time to pass."
+    },
+    {
+      "id": "anxiety_calm-024",
+      "category": "anxiety_calm",
+      "text": "I can give myself without letting them drive every choice with care and patience."
+    },
+    {
+      "id": "anxiety_calm-025",
+      "category": "anxiety_calm",
+      "text": "I can slow down that I am here now as I make space between thought and action."
+    },
+    {
+      "id": "anxiety_calm-026",
+      "category": "anxiety_calm",
+      "text": "I can let my body know that this moment is manageable and take the next step when I am ready."
+    },
+    {
+      "id": "anxiety_calm-027",
+      "category": "anxiety_calm",
+      "text": "My feelings can be present with curiosity instead of alarm and allow calm to be possible."
+    },
+    {
+      "id": "anxiety_calm-028",
+      "category": "anxiety_calm",
+      "text": "I can return to for one honest breath without blaming myself for feeling human."
+    },
+    {
+      "id": "anxiety_calm-029",
+      "category": "anxiety_calm",
+      "text": "I do not have to solve a little more room inside while staying connected to what is real."
+    },
+    {
+      "id": "anxiety_calm-030",
+      "category": "anxiety_calm",
+      "text": "I can create without judging it even if the feeling takes time to pass."
+    },
+    {
+      "id": "anxiety_calm-031",
+      "category": "anxiety_calm",
+      "text": "I can meet anxious thoughts everything at once as a practical act of kindness."
+    },
+    {
+      "id": "anxiety_calm-032",
+      "category": "anxiety_calm",
+      "text": "I can choose my shoulders and jaw and let the present become clearer."
+    },
+    {
+      "id": "anxiety_calm-033",
+      "category": "anxiety_calm",
+      "text": "This breath can remind me without letting them drive every choice and take the next step when I am ready."
+    },
+    {
+      "id": "anxiety_calm-034",
+      "category": "anxiety_calm",
+      "text": "I can soften that I am here now and allow calm to be possible."
+    },
+    {
+      "id": "anxiety_calm-035",
+      "category": "anxiety_calm",
+      "text": "I can notice tension that this moment is manageable without blaming myself for feeling human."
+    },
+    {
+      "id": "anxiety_calm-036",
+      "category": "anxiety_calm",
+      "text": "I can give myself with curiosity instead of alarm as I make space between thought and action."
+    },
+    {
+      "id": "anxiety_calm-037",
+      "category": "anxiety_calm",
+      "text": "I can slow down for one honest breath while I support myself gently."
+    },
+    {
+      "id": "anxiety_calm-038",
+      "category": "anxiety_calm",
+      "text": "I can let my body know a little more room inside as a practical act of kindness."
+    },
+    {
+      "id": "anxiety_calm-039",
+      "category": "anxiety_calm",
+      "text": "My feelings can be present without judging it and let the present become clearer."
+    },
+    {
+      "id": "anxiety_calm-040",
+      "category": "anxiety_calm",
+      "text": "I can return to everything at once and take the next step when I am ready."
+    },
+    {
+      "id": "anxiety_calm-041",
+      "category": "anxiety_calm",
+      "text": "I can create without letting them drive every choice with care and patience."
+    },
+    {
+      "id": "anxiety_calm-042",
+      "category": "anxiety_calm",
+      "text": "I can meet anxious thoughts that I am here now as I make space between thought and action."
+    },
+    {
+      "id": "anxiety_calm-043",
+      "category": "anxiety_calm",
+      "text": "I can choose that this moment is manageable while I support myself gently."
+    },
+    {
+      "id": "anxiety_calm-044",
+      "category": "anxiety_calm",
+      "text": "This breath can remind me with curiosity instead of alarm as a practical act of kindness."
+    },
+    {
+      "id": "anxiety_calm-045",
+      "category": "anxiety_calm",
+      "text": "I can notice tension a little more room inside while staying connected to what is real."
+    },
+    {
+      "id": "anxiety_calm-046",
+      "category": "anxiety_calm",
+      "text": "I can give myself without judging it even if the feeling takes time to pass."
+    },
+    {
+      "id": "anxiety_calm-047",
+      "category": "anxiety_calm",
+      "text": "I can slow down everything at once with care and patience."
+    },
+    {
+      "id": "anxiety_calm-048",
+      "category": "anxiety_calm",
+      "text": "I can let my body know my shoulders and jaw as I make space between thought and action."
+    },
+    {
+      "id": "anxiety_calm-049",
+      "category": "anxiety_calm",
+      "text": "I can return to that I am here now and allow calm to be possible."
+    },
+    {
+      "id": "anxiety_calm-050",
+      "category": "anxiety_calm",
+      "text": "I do not have to solve that this moment is manageable without blaming myself for feeling human."
+    },
+    {
+      "id": "anxiety_calm-051",
+      "category": "anxiety_calm",
+      "text": "I can create with curiosity instead of alarm while staying connected to what is real."
+    },
+    {
+      "id": "anxiety_calm-052",
+      "category": "anxiety_calm",
+      "text": "I can meet anxious thoughts for one honest breath even if the feeling takes time to pass."
+    },
+    {
+      "id": "anxiety_calm-053",
+      "category": "anxiety_calm",
+      "text": "This breath can remind me without judging it and let the present become clearer."
+    },
+    {
+      "id": "anxiety_calm-054",
+      "category": "anxiety_calm",
+      "text": "I can soften everything at once and take the next step when I am ready."
+    },
+    {
+      "id": "anxiety_calm-055",
+      "category": "anxiety_calm",
+      "text": "I can notice tension my shoulders and jaw and allow calm to be possible."
+    },
+    {
+      "id": "anxiety_calm-056",
+      "category": "anxiety_calm",
+      "text": "I can give myself without letting them drive every choice without blaming myself for feeling human."
+    },
+    {
+      "id": "anxiety_calm-057",
+      "category": "anxiety_calm",
+      "text": "I can let my body know that this moment is manageable while I support myself gently."
+    },
+    {
+      "id": "anxiety_calm-058",
+      "category": "anxiety_calm",
+      "text": "My feelings can be present with curiosity instead of alarm as a practical act of kindness."
+    },
+    {
+      "id": "anxiety_calm-059",
+      "category": "anxiety_calm",
+      "text": "I can return to for one honest breath and let the present become clearer."
+    },
+    {
+      "id": "anxiety_calm-060",
+      "category": "anxiety_calm",
+      "text": "I do not have to solve a little more room inside and take the next step when I am ready."
+    },
+    {
+      "id": "anxiety_calm-061",
+      "category": "anxiety_calm",
+      "text": "I can meet anxious thoughts everything at once with care and patience."
+    },
+    {
+      "id": "anxiety_calm-062",
+      "category": "anxiety_calm",
+      "text": "I can choose my shoulders and jaw as I make space between thought and action."
+    },
+    {
+      "id": "anxiety_calm-063",
+      "category": "anxiety_calm",
+      "text": "This breath can remind me without letting them drive every choice while I support myself gently."
+    },
+    {
+      "id": "anxiety_calm-064",
+      "category": "anxiety_calm",
+      "text": "I can soften that I am here now as a practical act of kindness."
+    },
+    {
+      "id": "anxiety_calm-065",
+      "category": "anxiety_calm",
+      "text": "I can give myself with curiosity instead of alarm while staying connected to what is real."
+    },
+    {
+      "id": "healing-001",
+      "category": "healing",
+      "text": "Healing can include rest and small effort without demanding instant change."
+    },
+    {
+      "id": "healing-002",
+      "category": "healing",
+      "text": "I can be gentle with trust in small pieces with honesty and compassion."
+    },
+    {
+      "id": "healing-003",
+      "category": "healing",
+      "text": "I give care to what hurt without living inside it without comparing my path to anyone else."
+    },
+    {
+      "id": "healing-004",
+      "category": "healing",
+      "text": "I can honor support and space as I learn what safety feels like."
+    },
+    {
+      "id": "healing-005",
+      "category": "healing",
+      "text": "I am allowed to need my energy without apology as a valid part of growth."
+    },
+    {
+      "id": "healing-006",
+      "category": "healing",
+      "text": "I can rebuild what still needs attention and give myself room to recover."
+    },
+    {
+      "id": "healing-007",
+      "category": "healing",
+      "text": "I can tend to what is unfinished while remaining worthy today."
+    },
+    {
+      "id": "healing-008",
+      "category": "healing",
+      "text": "My story can hold the parts of me that feel tender without demanding instant change."
+    },
+    {
+      "id": "healing-009",
+      "category": "healing",
+      "text": "I can take time with old pain with new kindness with honesty and compassion."
+    },
+    {
+      "id": "healing-010",
+      "category": "healing",
+      "text": "I can protect rest and small effort without comparing my path to anyone else."
+    },
+    {
+      "id": "healing-011",
+      "category": "healing",
+      "text": "I can acknowledge trust in small pieces and let patience be part of the process."
+    },
+    {
+      "id": "healing-012",
+      "category": "healing",
+      "text": "I can move toward what hurt without living inside it without rushing past my own needs."
+    },
+    {
+      "id": "healing-013",
+      "category": "healing",
+      "text": "Healing can include support and space and give myself room to recover."
+    },
+    {
+      "id": "healing-014",
+      "category": "healing",
+      "text": "I can be gentle with my energy without apology while remaining worthy today."
+    },
+    {
+      "id": "healing-015",
+      "category": "healing",
+      "text": "I give care to what still needs attention without demanding instant change."
+    },
+    {
+      "id": "healing-016",
+      "category": "healing",
+      "text": "I can honor what is unfinished as a valid part of growth."
+    },
+    {
+      "id": "healing-017",
+      "category": "healing",
+      "text": "I am allowed to need the parts of me that feel tender one caring choice at a time."
+    },
+    {
+      "id": "healing-018",
+      "category": "healing",
+      "text": "I can rebuild old pain with new kindness and let patience be part of the process."
+    },
+    {
+      "id": "healing-019",
+      "category": "healing",
+      "text": "I can tend to rest and small effort without rushing past my own needs."
+    },
+    {
+      "id": "healing-020",
+      "category": "healing",
+      "text": "My story can hold trust in small pieces and give myself room to recover."
+    },
+    {
+      "id": "healing-021",
+      "category": "healing",
+      "text": "I can take time with what hurt without living inside it without comparing my path to anyone else."
+    },
+    {
+      "id": "healing-022",
+      "category": "healing",
+      "text": "I can protect support and space as I learn what safety feels like."
+    },
+    {
+      "id": "healing-023",
+      "category": "healing",
+      "text": "I can acknowledge my energy without apology as a valid part of growth."
+    },
+    {
+      "id": "healing-024",
+      "category": "healing",
+      "text": "I can move toward what still needs attention one caring choice at a time."
+    },
+    {
+      "id": "healing-025",
+      "category": "healing",
+      "text": "Healing can include what is unfinished and let patience be part of the process."
+    },
+    {
+      "id": "healing-026",
+      "category": "healing",
+      "text": "I can be gentle with the parts of me that feel tender without demanding instant change."
+    },
+    {
+      "id": "healing-027",
+      "category": "healing",
+      "text": "I give care to old pain with new kindness with honesty and compassion."
+    },
+    {
+      "id": "healing-028",
+      "category": "healing",
+      "text": "I can honor rest and small effort without comparing my path to anyone else."
+    },
+    {
+      "id": "healing-029",
+      "category": "healing",
+      "text": "I am allowed to need trust in small pieces as I learn what safety feels like."
+    },
+    {
+      "id": "healing-030",
+      "category": "healing",
+      "text": "I can rebuild what hurt without living inside it as a valid part of growth."
+    },
+    {
+      "id": "healing-031",
+      "category": "healing",
+      "text": "I can tend to support and space and give myself room to recover."
+    },
+    {
+      "id": "healing-032",
+      "category": "healing",
+      "text": "My story can hold my energy without apology while remaining worthy today."
+    },
+    {
+      "id": "healing-033",
+      "category": "healing",
+      "text": "I can take time with what still needs attention without demanding instant change."
+    },
+    {
+      "id": "healing-034",
+      "category": "healing",
+      "text": "I can protect what is unfinished with honesty and compassion."
+    },
+    {
+      "id": "healing-035",
+      "category": "healing",
+      "text": "I can acknowledge the parts of me that feel tender without comparing my path to anyone else."
+    },
+    {
+      "id": "healing-036",
+      "category": "healing",
+      "text": "I can move toward old pain with new kindness and let patience be part of the process."
+    },
+    {
+      "id": "healing-037",
+      "category": "healing",
+      "text": "Healing can include rest and small effort without rushing past my own needs."
+    },
+    {
+      "id": "healing-038",
+      "category": "healing",
+      "text": "I can be gentle with trust in small pieces and give myself room to recover."
+    },
+    {
+      "id": "healing-039",
+      "category": "healing",
+      "text": "I give care to what hurt without living inside it while remaining worthy today."
+    },
+    {
+      "id": "healing-040",
+      "category": "healing",
+      "text": "I can honor support and space without demanding instant change."
+    },
+    {
+      "id": "healing-041",
+      "category": "healing",
+      "text": "I can rebuild what still needs attention one caring choice at a time."
+    },
+    {
+      "id": "healing-042",
+      "category": "healing",
+      "text": "I can tend to what is unfinished and let patience be part of the process."
+    },
+    {
+      "id": "healing-043",
+      "category": "healing",
+      "text": "My story can hold the parts of me that feel tender without rushing past my own needs."
+    },
+    {
+      "id": "healing-044",
+      "category": "healing",
+      "text": "I can take time with old pain with new kindness and give myself room to recover."
+    },
+    {
+      "id": "healing-045",
+      "category": "healing",
+      "text": "I can acknowledge trust in small pieces as I learn what safety feels like."
+    },
+    {
+      "id": "healing-046",
+      "category": "healing",
+      "text": "I can move toward what hurt without living inside it as a valid part of growth."
+    },
+    {
+      "id": "healing-047",
+      "category": "healing",
+      "text": "Healing can include support and space one caring choice at a time."
+    },
+    {
+      "id": "healing-048",
+      "category": "healing",
+      "text": "I can be gentle with my energy without apology and let patience be part of the process."
+    },
+    {
+      "id": "healing-049",
+      "category": "healing",
+      "text": "I can honor what is unfinished with honesty and compassion."
+    },
+    {
+      "id": "healing-050",
+      "category": "healing",
+      "text": "I am allowed to need the parts of me that feel tender without comparing my path to anyone else."
+    },
+    {
+      "id": "healing-051",
+      "category": "healing",
+      "text": "I can rebuild old pain with new kindness as I learn what safety feels like."
+    },
+    {
+      "id": "healing-052",
+      "category": "healing",
+      "text": "I can tend to rest and small effort as a valid part of growth."
+    },
+    {
+      "id": "healing-053",
+      "category": "healing",
+      "text": "I can take time with what hurt without living inside it while remaining worthy today."
+    },
+    {
+      "id": "healing-054",
+      "category": "healing",
+      "text": "I can protect support and space without demanding instant change."
+    },
+    {
+      "id": "healing-055",
+      "category": "healing",
+      "text": "I can acknowledge my energy without apology with honesty and compassion."
+    },
+    {
+      "id": "healing-056",
+      "category": "healing",
+      "text": "I can move toward what still needs attention without comparing my path to anyone else."
+    },
+    {
+      "id": "healing-057",
+      "category": "healing",
+      "text": "I can be gentle with the parts of me that feel tender without rushing past my own needs."
+    },
+    {
+      "id": "healing-058",
+      "category": "healing",
+      "text": "I give care to old pain with new kindness and give myself room to recover."
+    },
+    {
+      "id": "healing-059",
+      "category": "healing",
+      "text": "I can honor rest and small effort while remaining worthy today."
+    },
+    {
+      "id": "healing-060",
+      "category": "healing",
+      "text": "I am allowed to need trust in small pieces without demanding instant change."
+    },
+    {
+      "id": "healing-061",
+      "category": "healing",
+      "text": "I can tend to support and space one caring choice at a time."
+    },
+    {
+      "id": "healing-062",
+      "category": "healing",
+      "text": "My story can hold my energy without apology and let patience be part of the process."
+    },
+    {
+      "id": "healing-063",
+      "category": "healing",
+      "text": "I can take time with what still needs attention without rushing past my own needs."
+    },
+    {
+      "id": "healing-064",
+      "category": "healing",
+      "text": "I can protect what is unfinished and give myself room to recover."
+    },
+    {
+      "id": "healing-065",
+      "category": "healing",
+      "text": "I can move toward old pain with new kindness as I learn what safety feels like."
+    },
+    {
+      "id": "confidence-001",
+      "category": "confidence",
+      "text": "I can trust my ability to learn and keep improving as I go."
+    },
+    {
+      "id": "confidence-002",
+      "category": "confidence",
+      "text": "I am building up space with humility and backbone."
+    },
+    {
+      "id": "confidence-003",
+      "category": "confidence",
+      "text": "I can speak before I feel completely ready without shrinking to seem easier."
+    },
+    {
+      "id": "confidence-004",
+      "category": "confidence",
+      "text": "I bring what I know today without pretending to know everything."
+    },
+    {
+      "id": "confidence-005",
+      "category": "confidence",
+      "text": "I can stand in trying with care and still belong in the room."
+    },
+    {
+      "id": "confidence-006",
+      "category": "confidence",
+      "text": "I am allowed to take with clarity and kindness as evidence of real growth."
+    },
+    {
+      "id": "confidence-007",
+      "category": "confidence",
+      "text": "I can recognize steady and respectful while staying open to feedback."
+    },
+    {
+      "id": "confidence-008",
+      "category": "confidence",
+      "text": "I can act from confidence through practice and keep improving as I go."
+    },
+    {
+      "id": "confidence-009",
+      "category": "confidence",
+      "text": "My voice can be the strengths I already use with humility and backbone."
+    },
+    {
+      "id": "confidence-010",
+      "category": "confidence",
+      "text": "I can learn by my ability to learn without shrinking to seem easier."
+    },
+    {
+      "id": "confidence-011",
+      "category": "confidence",
+      "text": "I can show up up space as I choose the next brave action."
+    },
+    {
+      "id": "confidence-012",
+      "category": "confidence",
+      "text": "I can respect before I feel completely ready without needing perfection first."
+    },
+    {
+      "id": "confidence-013",
+      "category": "confidence",
+      "text": "I can trust what I know today as evidence of real growth."
+    },
+    {
+      "id": "confidence-014",
+      "category": "confidence",
+      "text": "I am building trying with care while staying open to feedback."
+    },
+    {
+      "id": "confidence-015",
+      "category": "confidence",
+      "text": "I can speak with clarity and kindness and keep improving as I go."
+    },
+    {
+      "id": "confidence-016",
+      "category": "confidence",
+      "text": "I bring steady and respectful and still belong in the room."
+    },
+    {
+      "id": "confidence-017",
+      "category": "confidence",
+      "text": "I can stand in confidence through practice and let my presence count."
+    },
+    {
+      "id": "confidence-018",
+      "category": "confidence",
+      "text": "I am allowed to take the strengths I already use as I choose the next brave action."
+    },
+    {
+      "id": "confidence-019",
+      "category": "confidence",
+      "text": "I can recognize my ability to learn without needing perfection first."
+    },
+    {
+      "id": "confidence-020",
+      "category": "confidence",
+      "text": "I can act from up space as evidence of real growth."
+    },
+    {
+      "id": "confidence-021",
+      "category": "confidence",
+      "text": "My voice can be before I feel completely ready without shrinking to seem easier."
+    },
+    {
+      "id": "confidence-022",
+      "category": "confidence",
+      "text": "I can learn by what I know today without pretending to know everything."
+    },
+    {
+      "id": "confidence-023",
+      "category": "confidence",
+      "text": "I can show up trying with care and still belong in the room."
+    },
+    {
+      "id": "confidence-024",
+      "category": "confidence",
+      "text": "I can respect with clarity and kindness and let my presence count."
+    },
+    {
+      "id": "confidence-025",
+      "category": "confidence",
+      "text": "I can trust steady and respectful as I choose the next brave action."
+    },
+    {
+      "id": "confidence-026",
+      "category": "confidence",
+      "text": "I am building confidence through practice and keep improving as I go."
+    },
+    {
+      "id": "confidence-027",
+      "category": "confidence",
+      "text": "I can speak the strengths I already use with humility and backbone."
+    },
+    {
+      "id": "confidence-028",
+      "category": "confidence",
+      "text": "I bring my ability to learn without shrinking to seem easier."
+    },
+    {
+      "id": "confidence-029",
+      "category": "confidence",
+      "text": "I can stand in up space without pretending to know everything."
+    },
+    {
+      "id": "confidence-030",
+      "category": "confidence",
+      "text": "I am allowed to take before I feel completely ready and still belong in the room."
+    },
+    {
+      "id": "confidence-031",
+      "category": "confidence",
+      "text": "I can recognize what I know today as evidence of real growth."
+    },
+    {
+      "id": "confidence-032",
+      "category": "confidence",
+      "text": "I can act from trying with care while staying open to feedback."
+    },
+    {
+      "id": "confidence-033",
+      "category": "confidence",
+      "text": "My voice can be with clarity and kindness and keep improving as I go."
+    },
+    {
+      "id": "confidence-034",
+      "category": "confidence",
+      "text": "I can learn by steady and respectful with humility and backbone."
+    },
+    {
+      "id": "confidence-035",
+      "category": "confidence",
+      "text": "I can show up confidence through practice without shrinking to seem easier."
+    },
+    {
+      "id": "confidence-036",
+      "category": "confidence",
+      "text": "I can respect the strengths I already use as I choose the next brave action."
+    },
+    {
+      "id": "confidence-037",
+      "category": "confidence",
+      "text": "I can trust my ability to learn without needing perfection first."
+    },
+    {
+      "id": "confidence-038",
+      "category": "confidence",
+      "text": "I am building up space as evidence of real growth."
+    },
+    {
+      "id": "confidence-039",
+      "category": "confidence",
+      "text": "I can speak before I feel completely ready while staying open to feedback."
+    },
+    {
+      "id": "confidence-040",
+      "category": "confidence",
+      "text": "I bring what I know today and keep improving as I go."
+    },
+    {
+      "id": "confidence-041",
+      "category": "confidence",
+      "text": "I am allowed to take with clarity and kindness and let my presence count."
+    },
+    {
+      "id": "confidence-042",
+      "category": "confidence",
+      "text": "I can recognize steady and respectful as I choose the next brave action."
+    },
+    {
+      "id": "confidence-043",
+      "category": "confidence",
+      "text": "I can act from confidence through practice without needing perfection first."
+    },
+    {
+      "id": "confidence-044",
+      "category": "confidence",
+      "text": "My voice can be the strengths I already use as evidence of real growth."
+    },
+    {
+      "id": "confidence-045",
+      "category": "confidence",
+      "text": "I can show up up space without pretending to know everything."
+    },
+    {
+      "id": "confidence-046",
+      "category": "confidence",
+      "text": "I can respect before I feel completely ready and still belong in the room."
+    },
+    {
+      "id": "confidence-047",
+      "category": "confidence",
+      "text": "I can trust what I know today and let my presence count."
+    },
+    {
+      "id": "confidence-048",
+      "category": "confidence",
+      "text": "I am building trying with care as I choose the next brave action."
+    },
+    {
+      "id": "confidence-049",
+      "category": "confidence",
+      "text": "I bring steady and respectful with humility and backbone."
+    },
+    {
+      "id": "confidence-050",
+      "category": "confidence",
+      "text": "I can stand in confidence through practice without shrinking to seem easier."
+    },
+    {
+      "id": "confidence-051",
+      "category": "confidence",
+      "text": "I am allowed to take the strengths I already use without pretending to know everything."
+    },
+    {
+      "id": "confidence-052",
+      "category": "confidence",
+      "text": "I can recognize my ability to learn and still belong in the room."
+    },
+    {
+      "id": "confidence-053",
+      "category": "confidence",
+      "text": "My voice can be before I feel completely ready while staying open to feedback."
+    },
+    {
+      "id": "confidence-054",
+      "category": "confidence",
+      "text": "I can learn by what I know today and keep improving as I go."
+    },
+    {
+      "id": "confidence-055",
+      "category": "confidence",
+      "text": "I can show up trying with care with humility and backbone."
+    },
+    {
+      "id": "confidence-056",
+      "category": "confidence",
+      "text": "I can respect with clarity and kindness without shrinking to seem easier."
+    },
+    {
+      "id": "confidence-057",
+      "category": "confidence",
+      "text": "I am building confidence through practice without needing perfection first."
+    },
+    {
+      "id": "confidence-058",
+      "category": "confidence",
+      "text": "I can speak the strengths I already use as evidence of real growth."
+    },
+    {
+      "id": "confidence-059",
+      "category": "confidence",
+      "text": "I bring my ability to learn while staying open to feedback."
+    },
+    {
+      "id": "confidence-060",
+      "category": "confidence",
+      "text": "I can stand in up space and keep improving as I go."
+    },
+    {
+      "id": "confidence-061",
+      "category": "confidence",
+      "text": "I can recognize what I know today and let my presence count."
+    },
+    {
+      "id": "confidence-062",
+      "category": "confidence",
+      "text": "I can act from trying with care as I choose the next brave action."
+    },
+    {
+      "id": "confidence-063",
+      "category": "confidence",
+      "text": "My voice can be with clarity and kindness without needing perfection first."
+    },
+    {
+      "id": "confidence-064",
+      "category": "confidence",
+      "text": "I can learn by steady and respectful as evidence of real growth."
+    },
+    {
+      "id": "confidence-065",
+      "category": "confidence",
+      "text": "I can respect the strengths I already use without pretending to know everything."
+    },
+    {
+      "id": "relationships-001",
+      "category": "relationships",
+      "text": "I can bring honesty and warmth as I stay true to myself."
+    },
+    {
+      "id": "relationships-002",
+      "category": "relationships",
+      "text": "I can listen support without minimizing my needs and pause before reacting."
+    },
+    {
+      "id": "relationships-003",
+      "category": "relationships",
+      "text": "I can set while caring for myself with patience and clarity."
+    },
+    {
+      "id": "relationships-004",
+      "category": "relationships",
+      "text": "I can choose care that is honest without taking responsibility for everything."
+    },
+    {
+      "id": "relationships-005",
+      "category": "relationships",
+      "text": "I can offer repair when it is possible with courage and care."
+    },
+    {
+      "id": "relationships-006",
+      "category": "relationships",
+      "text": "I can receive boundaries with respect as a practice of love and wisdom."
+    },
+    {
+      "id": "relationships-007",
+      "category": "relationships",
+      "text": "I can honor clearly and gently while remembering I matter too."
+    },
+    {
+      "id": "relationships-008",
+      "category": "relationships",
+      "text": "I can let connection include with my full attention as I stay true to myself."
+    },
+    {
+      "id": "relationships-009",
+      "category": "relationships",
+      "text": "I can communicate the dignity of every person and pause before reacting."
+    },
+    {
+      "id": "relationships-010",
+      "category": "relationships",
+      "text": "I can make room for honesty and warmth with patience and clarity."
+    },
+    {
+      "id": "relationships-011",
+      "category": "relationships",
+      "text": "I can care about others support without minimizing my needs and let mutual respect guide me."
+    },
+    {
+      "id": "relationships-012",
+      "category": "relationships",
+      "text": "I can stay open to while caring for myself while allowing relationships to grow honestly."
+    },
+    {
+      "id": "relationships-013",
+      "category": "relationships",
+      "text": "I can bring care that is honest as a practice of love and wisdom."
+    },
+    {
+      "id": "relationships-014",
+      "category": "relationships",
+      "text": "I can listen repair when it is possible while remembering I matter too."
+    },
+    {
+      "id": "relationships-015",
+      "category": "relationships",
+      "text": "I can set boundaries with respect as I stay true to myself."
+    },
+    {
+      "id": "relationships-016",
+      "category": "relationships",
+      "text": "I can choose clearly and gently with courage and care."
+    },
+    {
+      "id": "relationships-017",
+      "category": "relationships",
+      "text": "I can offer with my full attention without forcing closeness."
+    },
+    {
+      "id": "relationships-018",
+      "category": "relationships",
+      "text": "I can receive the dignity of every person and let mutual respect guide me."
+    },
+    {
+      "id": "relationships-019",
+      "category": "relationships",
+      "text": "I can honor honesty and warmth while allowing relationships to grow honestly."
+    },
+    {
+      "id": "relationships-020",
+      "category": "relationships",
+      "text": "I can let connection include support without minimizing my needs as a practice of love and wisdom."
+    },
+    {
+      "id": "relationships-021",
+      "category": "relationships",
+      "text": "I can communicate while caring for myself with patience and clarity."
+    },
+    {
+      "id": "relationships-022",
+      "category": "relationships",
+      "text": "I can make room for care that is honest without taking responsibility for everything."
+    },
+    {
+      "id": "relationships-023",
+      "category": "relationships",
+      "text": "I can care about others repair when it is possible with courage and care."
+    },
+    {
+      "id": "relationships-024",
+      "category": "relationships",
+      "text": "I can stay open to boundaries with respect without forcing closeness."
+    },
+    {
+      "id": "relationships-025",
+      "category": "relationships",
+      "text": "I can bring clearly and gently and let mutual respect guide me."
+    },
+    {
+      "id": "relationships-026",
+      "category": "relationships",
+      "text": "I can listen with my full attention as I stay true to myself."
+    },
+    {
+      "id": "relationships-027",
+      "category": "relationships",
+      "text": "I can set the dignity of every person and pause before reacting."
+    },
+    {
+      "id": "relationships-028",
+      "category": "relationships",
+      "text": "I can choose honesty and warmth with patience and clarity."
+    },
+    {
+      "id": "relationships-029",
+      "category": "relationships",
+      "text": "I can offer support without minimizing my needs without taking responsibility for everything."
+    },
+    {
+      "id": "relationships-030",
+      "category": "relationships",
+      "text": "I can receive while caring for myself with courage and care."
+    },
+    {
+      "id": "relationships-031",
+      "category": "relationships",
+      "text": "I can honor care that is honest as a practice of love and wisdom."
+    },
+    {
+      "id": "relationships-032",
+      "category": "relationships",
+      "text": "I can let connection include repair when it is possible while remembering I matter too."
+    },
+    {
+      "id": "relationships-033",
+      "category": "relationships",
+      "text": "I can communicate boundaries with respect as I stay true to myself."
+    },
+    {
+      "id": "relationships-034",
+      "category": "relationships",
+      "text": "I can make room for clearly and gently and pause before reacting."
+    },
+    {
+      "id": "relationships-035",
+      "category": "relationships",
+      "text": "I can care about others with my full attention with patience and clarity."
+    },
+    {
+      "id": "relationships-036",
+      "category": "relationships",
+      "text": "I can stay open to the dignity of every person and let mutual respect guide me."
+    },
+    {
+      "id": "relationships-037",
+      "category": "relationships",
+      "text": "I can bring honesty and warmth while allowing relationships to grow honestly."
+    },
+    {
+      "id": "relationships-038",
+      "category": "relationships",
+      "text": "I can listen support without minimizing my needs as a practice of love and wisdom."
+    },
+    {
+      "id": "relationships-039",
+      "category": "relationships",
+      "text": "I can set while caring for myself while remembering I matter too."
+    },
+    {
+      "id": "relationships-040",
+      "category": "relationships",
+      "text": "I can choose care that is honest as I stay true to myself."
+    },
+    {
+      "id": "relationships-041",
+      "category": "relationships",
+      "text": "I can receive boundaries with respect without forcing closeness."
+    },
+    {
+      "id": "relationships-042",
+      "category": "relationships",
+      "text": "I can honor clearly and gently and let mutual respect guide me."
+    },
+    {
+      "id": "relationships-043",
+      "category": "relationships",
+      "text": "I can let connection include with my full attention while allowing relationships to grow honestly."
+    },
+    {
+      "id": "relationships-044",
+      "category": "relationships",
+      "text": "I can communicate the dignity of every person as a practice of love and wisdom."
+    },
+    {
+      "id": "relationships-045",
+      "category": "relationships",
+      "text": "I can care about others support without minimizing my needs without taking responsibility for everything."
+    },
+    {
+      "id": "relationships-046",
+      "category": "relationships",
+      "text": "I can stay open to while caring for myself with courage and care."
+    },
+    {
+      "id": "relationships-047",
+      "category": "relationships",
+      "text": "I can bring care that is honest without forcing closeness."
+    },
+    {
+      "id": "relationships-048",
+      "category": "relationships",
+      "text": "I can listen repair when it is possible and let mutual respect guide me."
+    },
+    {
+      "id": "relationships-049",
+      "category": "relationships",
+      "text": "I can choose clearly and gently and pause before reacting."
+    },
+    {
+      "id": "relationships-050",
+      "category": "relationships",
+      "text": "I can offer with my full attention with patience and clarity."
+    },
+    {
+      "id": "relationships-051",
+      "category": "relationships",
+      "text": "I can receive the dignity of every person without taking responsibility for everything."
+    },
+    {
+      "id": "relationships-052",
+      "category": "relationships",
+      "text": "I can honor honesty and warmth with courage and care."
+    },
+    {
+      "id": "relationships-053",
+      "category": "relationships",
+      "text": "I can communicate while caring for myself while remembering I matter too."
+    },
+    {
+      "id": "relationships-054",
+      "category": "relationships",
+      "text": "I can make room for care that is honest as I stay true to myself."
+    },
+    {
+      "id": "relationships-055",
+      "category": "relationships",
+      "text": "I can care about others repair when it is possible and pause before reacting."
+    },
+    {
+      "id": "relationships-056",
+      "category": "relationships",
+      "text": "I can stay open to boundaries with respect with patience and clarity."
+    },
+    {
+      "id": "relationships-057",
+      "category": "relationships",
+      "text": "I can listen with my full attention while allowing relationships to grow honestly."
+    },
+    {
+      "id": "relationships-058",
+      "category": "relationships",
+      "text": "I can set the dignity of every person as a practice of love and wisdom."
+    },
+    {
+      "id": "relationships-059",
+      "category": "relationships",
+      "text": "I can choose honesty and warmth while remembering I matter too."
+    },
+    {
+      "id": "relationships-060",
+      "category": "relationships",
+      "text": "I can offer support without minimizing my needs as I stay true to myself."
+    },
+    {
+      "id": "relationships-061",
+      "category": "relationships",
+      "text": "I can honor care that is honest without forcing closeness."
+    },
+    {
+      "id": "relationships-062",
+      "category": "relationships",
+      "text": "I can let connection include repair when it is possible and let mutual respect guide me."
+    },
+    {
+      "id": "relationships-063",
+      "category": "relationships",
+      "text": "I can communicate boundaries with respect while allowing relationships to grow honestly."
+    },
+    {
+      "id": "relationships-064",
+      "category": "relationships",
+      "text": "I can make room for clearly and gently as a practice of love and wisdom."
+    },
+    {
+      "id": "relationships-065",
+      "category": "relationships",
+      "text": "I can stay open to the dignity of every person without taking responsibility for everything."
+    },
+    {
+      "id": "happiness-001",
+      "category": "happiness",
+      "text": "Joy can be small and still meaningful without needing to earn it."
+    },
+    {
+      "id": "happiness-002",
+      "category": "happiness",
+      "text": "I can welcome have a place in my day with gratitude and openness."
+    },
+    {
+      "id": "happiness-003",
+      "category": "happiness",
+      "text": "I am allowed to enjoy sit beside seriousness without asking it to fix everything."
+    },
+    {
+      "id": "happiness-004",
+      "category": "happiness",
+      "text": "I can notice pleasure without guilt while allowing every feeling to belong."
+    },
+    {
+      "id": "happiness-005",
+      "category": "happiness",
+      "text": "I can make room for beauty without owning it even if it is brief."
+    },
+    {
+      "id": "happiness-006",
+      "category": "happiness",
+      "text": "I can let delight what feels good today as a real and worthy experience."
+    },
+    {
+      "id": "happiness-007",
+      "category": "happiness",
+      "text": "Happiness can arrive through playfulness when it appears as part of a balanced life."
+    },
+    {
+      "id": "happiness-008",
+      "category": "happiness",
+      "text": "I can savor a moment of ease without needing to earn it."
+    },
+    {
+      "id": "happiness-009",
+      "category": "happiness",
+      "text": "I can choose simple, honest moments with gratitude and openness."
+    },
+    {
+      "id": "happiness-010",
+      "category": "happiness",
+      "text": "I can be present for small and still meaningful without asking it to fix everything."
+    },
+    {
+      "id": "happiness-011",
+      "category": "happiness",
+      "text": "I can let lightness have a place in my day and let it nourish me."
+    },
+    {
+      "id": "happiness-012",
+      "category": "happiness",
+      "text": "I can appreciate sit beside seriousness and let my heart have some room."
+    },
+    {
+      "id": "happiness-013",
+      "category": "happiness",
+      "text": "Joy can be pleasure without guilt as a real and worthy experience."
+    },
+    {
+      "id": "happiness-014",
+      "category": "happiness",
+      "text": "I can welcome beauty without owning it as part of a balanced life."
+    },
+    {
+      "id": "happiness-015",
+      "category": "happiness",
+      "text": "I am allowed to enjoy what feels good today without needing to earn it."
+    },
+    {
+      "id": "happiness-016",
+      "category": "happiness",
+      "text": "I can notice playfulness when it appears even if it is brief."
+    },
+    {
+      "id": "happiness-017",
+      "category": "happiness",
+      "text": "I can make room for a moment of ease and remember that ease matters."
+    },
+    {
+      "id": "happiness-018",
+      "category": "happiness",
+      "text": "I can let delight simple, honest moments and let it nourish me."
+    },
+    {
+      "id": "happiness-019",
+      "category": "happiness",
+      "text": "Happiness can arrive through small and still meaningful and let my heart have some room."
+    },
+    {
+      "id": "happiness-020",
+      "category": "happiness",
+      "text": "I can savor have a place in my day as a real and worthy experience."
+    },
+    {
+      "id": "happiness-021",
+      "category": "happiness",
+      "text": "I can choose sit beside seriousness without asking it to fix everything."
+    },
+    {
+      "id": "happiness-022",
+      "category": "happiness",
+      "text": "I can be present for pleasure without guilt while allowing every feeling to belong."
+    },
+    {
+      "id": "happiness-023",
+      "category": "happiness",
+      "text": "I can let lightness beauty without owning it even if it is brief."
+    },
+    {
+      "id": "happiness-024",
+      "category": "happiness",
+      "text": "I can appreciate what feels good today and remember that ease matters."
+    },
+    {
+      "id": "happiness-025",
+      "category": "happiness",
+      "text": "Joy can be playfulness when it appears and let it nourish me."
+    },
+    {
+      "id": "happiness-026",
+      "category": "happiness",
+      "text": "I can welcome a moment of ease without needing to earn it."
+    },
+    {
+      "id": "happiness-027",
+      "category": "happiness",
+      "text": "I am allowed to enjoy simple, honest moments with gratitude and openness."
+    },
+    {
+      "id": "happiness-028",
+      "category": "happiness",
+      "text": "I can notice small and still meaningful without asking it to fix everything."
+    },
+    {
+      "id": "happiness-029",
+      "category": "happiness",
+      "text": "I can make room for have a place in my day while allowing every feeling to belong."
+    },
+    {
+      "id": "happiness-030",
+      "category": "happiness",
+      "text": "I can let delight sit beside seriousness even if it is brief."
+    },
+    {
+      "id": "happiness-031",
+      "category": "happiness",
+      "text": "Happiness can arrive through pleasure without guilt as a real and worthy experience."
+    },
+    {
+      "id": "happiness-032",
+      "category": "happiness",
+      "text": "I can savor beauty without owning it as part of a balanced life."
+    },
+    {
+      "id": "happiness-033",
+      "category": "happiness",
+      "text": "I can choose what feels good today without needing to earn it."
+    },
+    {
+      "id": "happiness-034",
+      "category": "happiness",
+      "text": "I can be present for playfulness when it appears with gratitude and openness."
+    },
+    {
+      "id": "happiness-035",
+      "category": "happiness",
+      "text": "I can let lightness a moment of ease without asking it to fix everything."
+    },
+    {
+      "id": "happiness-036",
+      "category": "happiness",
+      "text": "I can appreciate simple, honest moments and let it nourish me."
+    },
+    {
+      "id": "happiness-037",
+      "category": "happiness",
+      "text": "Joy can be small and still meaningful and let my heart have some room."
+    },
+    {
+      "id": "happiness-038",
+      "category": "happiness",
+      "text": "I can welcome have a place in my day as a real and worthy experience."
+    },
+    {
+      "id": "happiness-039",
+      "category": "happiness",
+      "text": "I am allowed to enjoy sit beside seriousness as part of a balanced life."
+    },
+    {
+      "id": "happiness-040",
+      "category": "happiness",
+      "text": "I can notice pleasure without guilt without needing to earn it."
+    },
+    {
+      "id": "happiness-041",
+      "category": "happiness",
+      "text": "I can let delight what feels good today and remember that ease matters."
+    },
+    {
+      "id": "happiness-042",
+      "category": "happiness",
+      "text": "Happiness can arrive through playfulness when it appears and let it nourish me."
+    },
+    {
+      "id": "happiness-043",
+      "category": "happiness",
+      "text": "I can savor a moment of ease and let my heart have some room."
+    },
+    {
+      "id": "happiness-044",
+      "category": "happiness",
+      "text": "I can choose simple, honest moments as a real and worthy experience."
+    },
+    {
+      "id": "happiness-045",
+      "category": "happiness",
+      "text": "I can let lightness have a place in my day while allowing every feeling to belong."
+    },
+    {
+      "id": "happiness-046",
+      "category": "happiness",
+      "text": "I can appreciate sit beside seriousness even if it is brief."
+    },
+    {
+      "id": "happiness-047",
+      "category": "happiness",
+      "text": "Joy can be pleasure without guilt and remember that ease matters."
+    },
+    {
+      "id": "happiness-048",
+      "category": "happiness",
+      "text": "I can welcome beauty without owning it and let it nourish me."
+    },
+    {
+      "id": "happiness-049",
+      "category": "happiness",
+      "text": "I can notice playfulness when it appears with gratitude and openness."
+    },
+    {
+      "id": "happiness-050",
+      "category": "happiness",
+      "text": "I can make room for a moment of ease without asking it to fix everything."
+    },
+    {
+      "id": "happiness-051",
+      "category": "happiness",
+      "text": "I can let delight simple, honest moments while allowing every feeling to belong."
+    },
+    {
+      "id": "happiness-052",
+      "category": "happiness",
+      "text": "Happiness can arrive through small and still meaningful even if it is brief."
+    },
+    {
+      "id": "happiness-053",
+      "category": "happiness",
+      "text": "I can choose sit beside seriousness as part of a balanced life."
+    },
+    {
+      "id": "happiness-054",
+      "category": "happiness",
+      "text": "I can be present for pleasure without guilt without needing to earn it."
+    },
+    {
+      "id": "happiness-055",
+      "category": "happiness",
+      "text": "I can let lightness beauty without owning it with gratitude and openness."
+    },
+    {
+      "id": "happiness-056",
+      "category": "happiness",
+      "text": "I can appreciate what feels good today without asking it to fix everything."
+    },
+    {
+      "id": "happiness-057",
+      "category": "happiness",
+      "text": "I can welcome a moment of ease and let my heart have some room."
+    },
+    {
+      "id": "happiness-058",
+      "category": "happiness",
+      "text": "I am allowed to enjoy simple, honest moments as a real and worthy experience."
+    },
+    {
+      "id": "happiness-059",
+      "category": "happiness",
+      "text": "I can notice small and still meaningful as part of a balanced life."
+    },
+    {
+      "id": "happiness-060",
+      "category": "happiness",
+      "text": "I can make room for have a place in my day without needing to earn it."
+    },
+    {
+      "id": "happiness-061",
+      "category": "happiness",
+      "text": "Happiness can arrive through pleasure without guilt and remember that ease matters."
+    },
+    {
+      "id": "happiness-062",
+      "category": "happiness",
+      "text": "I can savor beauty without owning it and let it nourish me."
+    },
+    {
+      "id": "happiness-063",
+      "category": "happiness",
+      "text": "I can choose what feels good today and let my heart have some room."
+    },
+    {
+      "id": "happiness-064",
+      "category": "happiness",
+      "text": "I can be present for playfulness when it appears as a real and worthy experience."
+    },
+    {
+      "id": "happiness-065",
+      "category": "happiness",
+      "text": "I can appreciate simple, honest moments while allowing every feeling to belong."
+    }
+  ]
+}
