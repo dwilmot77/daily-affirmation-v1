@@ -21,6 +21,11 @@ const defaultState = {
     reminderEnabled: false,
     reminderTime: "09:00",
   },
+  daily: {
+    date: "",
+    affirmationId: "",
+    revealed: false,
+  },
   favorites: [],
   reflections: {},
   history: {},
@@ -83,6 +88,7 @@ function loadState() {
       ...structuredClone(defaultState),
       ...saved,
       settings: { ...defaultState.settings, ...saved?.settings },
+      daily: { ...defaultState.daily, ...saved?.daily },
       favorites: Array.isArray(saved?.favorites) ? saved.favorites : [],
       reflections: saved?.reflections || {},
       history: saved?.history || {},
@@ -167,6 +173,64 @@ function categoryName(key) {
   return appData.categories[key] || key;
 }
 
+function findAffirmationById(id) {
+  return appData.affirmations.find((item) => item.id === id) || null;
+}
+
+function ensureTodayState() {
+  const date = todayKey();
+  if (state.daily.date !== date) {
+    state.daily = {
+      date,
+      affirmationId: "",
+      revealed: false,
+    };
+    saveState();
+  }
+}
+
+function getTodaysAffirmation() {
+  ensureTodayState();
+  const savedAffirmation = findAffirmationById(state.daily.affirmationId);
+  if (savedAffirmation) {
+    return savedAffirmation;
+  }
+
+  const todaysHistoryAffirmation = findAffirmationById(state.history[todayKey()]?.affirmationId);
+  if (todaysHistoryAffirmation) {
+    state.daily.affirmationId = todaysHistoryAffirmation.id;
+    saveState();
+    return todaysHistoryAffirmation;
+  }
+
+  const todaysReflection = Object.values(state.reflections).find((reflection) => reflection.date === todayKey());
+  const todaysReflectionAffirmation = findAffirmationById(todaysReflection?.affirmationId);
+  if (todaysReflectionAffirmation) {
+    state.daily.affirmationId = todaysReflectionAffirmation.id;
+    saveState();
+    return todaysReflectionAffirmation;
+  }
+
+  const nextAffirmation = chooseAffirmation(true);
+  if (nextAffirmation) {
+    state.daily.affirmationId = nextAffirmation.id;
+    state.daily.revealed = false;
+    saveState();
+  }
+  return nextAffirmation;
+}
+
+function updateDailyState(item, options = {}) {
+  ensureTodayState();
+  if (state.daily.affirmationId !== item.id) {
+    state.daily.affirmationId = item.id;
+    state.daily.revealed = Boolean(options.revealed);
+  } else if (typeof options.revealed === "boolean") {
+    state.daily.revealed = options.revealed;
+  }
+  saveState();
+}
+
 function setAffirmation(item, options = {}) {
   if (!item) {
     setStatus("Affirmations are still loading.");
@@ -174,6 +238,9 @@ function setAffirmation(item, options = {}) {
   }
 
   currentAffirmation = item;
+  if (options.persistDaily !== false) {
+    updateDailyState(item, { revealed: options.skipBreath || state.daily.revealed });
+  }
   if (options.recordHistory !== false) {
     recordTodayHistory(item);
   }
@@ -184,7 +251,7 @@ function setAffirmation(item, options = {}) {
   elements.reflectionContext.textContent = `${todayKey()} · ${categoryName(item.category)}`;
   loadCurrentReflection();
 
-  if (state.settings.breatheFirst && !options.skipBreath) {
+  if (state.settings.breatheFirst && !options.skipBreath && !state.daily.revealed) {
     breathGateOpen = false;
     elements.breathPanel.hidden = false;
     elements.affirmationCard.hidden = true;
@@ -211,6 +278,9 @@ function recordTodayHistory(item) {
 
 function revealAffirmation() {
   breathGateOpen = true;
+  if (currentAffirmation) {
+    updateDailyState(currentAffirmation, { revealed: true });
+  }
   elements.breathPanel.hidden = true;
   elements.affirmationCard.hidden = false;
   elements.affirmationText.focus({ preventScroll: false });
@@ -365,7 +435,7 @@ function renderReflections() {
     openButton.addEventListener("click", () => {
       const affirmation = appData.affirmations.find((entry) => entry.id === item.affirmationId);
       if (affirmation) {
-        setAffirmation(affirmation, { skipBreath: true });
+        setAffirmation(affirmation, { skipBreath: true, persistDaily: false, recordHistory: false });
         elements.reflectionText.value = item.text;
         switchView("home");
       }
@@ -758,7 +828,7 @@ async function startApp() {
     }
     appData = await response.json();
     renderCategoryControls();
-    setAffirmation(chooseAffirmation(true));
+    setAffirmation(getTodaysAffirmation());
     renderFavorites();
     renderReflections();
     renderHistory();
