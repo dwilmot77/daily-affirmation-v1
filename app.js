@@ -23,6 +23,7 @@ const defaultState = {
   },
   favorites: [],
   reflections: {},
+  history: {},
   feedback: {},
 };
 
@@ -46,6 +47,12 @@ const elements = {
   favoritesList: document.querySelector("#favoritesList"),
   reflectionSearch: document.querySelector("#reflectionSearch"),
   reflectionsList: document.querySelector("#reflectionsList"),
+  historyList: document.querySelector("#historyList"),
+  historyDetail: document.querySelector("#historyDetail"),
+  historyDetailMeta: document.querySelector("#historyDetailMeta"),
+  historyDetailAffirmation: document.querySelector("#historyDetailAffirmation"),
+  historyDetailStatus: document.querySelector("#historyDetailStatus"),
+  historyDetailReflections: document.querySelector("#historyDetailReflections"),
   affirmationSearch: document.querySelector("#affirmationSearch"),
   searchResults: document.querySelector("#searchResults"),
   searchCategoryFilters: document.querySelector("#searchCategoryFilters"),
@@ -78,6 +85,7 @@ function loadState() {
       settings: { ...defaultState.settings, ...saved?.settings },
       favorites: Array.isArray(saved?.favorites) ? saved.favorites : [],
       reflections: saved?.reflections || {},
+      history: saved?.history || {},
       feedback: saved?.feedback || {},
     };
   } catch {
@@ -166,6 +174,9 @@ function setAffirmation(item, options = {}) {
   }
 
   currentAffirmation = item;
+  if (options.recordHistory !== false) {
+    recordTodayHistory(item);
+  }
   elements.categoryLabel.textContent = categoryName(item.category);
   elements.affirmationText.textContent = item.text;
   elements.favoriteButton.setAttribute("aria-pressed", String(state.favorites.includes(item.id)));
@@ -182,6 +193,20 @@ function setAffirmation(item, options = {}) {
     elements.breathPanel.hidden = true;
     elements.affirmationCard.hidden = false;
   }
+}
+
+function recordTodayHistory(item) {
+  const date = todayKey();
+  const existing = state.history[date] || {};
+  state.history[date] = {
+    ...existing,
+    date,
+    affirmationId: item.id,
+    category: item.category,
+    affirmation: item.text,
+    updatedAt: new Date().toISOString(),
+  };
+  saveState();
 }
 
 function revealAffirmation() {
@@ -222,6 +247,7 @@ function saveCurrentReflection() {
   }
   saveState();
   renderReflections();
+  renderHistory();
 }
 
 function toggleFavorite(id = currentAffirmation?.id) {
@@ -244,6 +270,7 @@ function toggleFavorite(id = currentAffirmation?.id) {
     setAffirmation(currentAffirmation, { skipBreath: breathGateOpen });
   }
   renderFavorites();
+  renderHistory();
 }
 
 async function copyAffirmation() {
@@ -346,6 +373,114 @@ function renderReflections() {
     card.querySelector(".result-actions").append(openButton);
     elements.reflectionsList.append(card);
   });
+}
+
+function getReflectionsForDate(date) {
+  return Object.values(state.reflections)
+    .filter((item) => item.date === date)
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+}
+
+function getHistoryEntries() {
+  const today = todayKey();
+  const byDate = new Map();
+
+  Object.values(state.history || {}).forEach((entry) => {
+    if (!entry?.date || entry.date >= today) {
+      return;
+    }
+    byDate.set(entry.date, { ...entry });
+  });
+
+  Object.values(state.reflections || {}).forEach((reflection) => {
+    if (!reflection?.date || reflection.date >= today) {
+      return;
+    }
+    if (!byDate.has(reflection.date)) {
+      byDate.set(reflection.date, {
+        date: reflection.date,
+        affirmationId: reflection.affirmationId,
+        category: reflection.category,
+        affirmation: reflection.affirmation,
+        updatedAt: reflection.updatedAt,
+      });
+    }
+  });
+
+  return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date));
+}
+
+function renderHistory() {
+  if (!elements.historyList) {
+    return;
+  }
+
+  const entries = getHistoryEntries();
+  elements.historyList.innerHTML = "";
+  elements.historyDetail.hidden = true;
+
+  if (!entries.length) {
+    elements.historyList.append(emptyMessage("No past days yet. After today passes, saved days will appear here."));
+    return;
+  }
+
+  entries.forEach((entry) => {
+    const reflections = getReflectionsForDate(entry.date);
+    const favorited = state.favorites.includes(entry.affirmationId);
+    const card = document.createElement("article");
+    card.className = "result-card";
+    card.innerHTML = `
+      <p class="category-pill">${escapeHtml(formatHistoryDate(entry.date))} - ${escapeHtml(categoryName(entry.category))}</p>
+      <p>${escapeHtml(entry.affirmation)}</p>
+      <p>${favorited ? "Favorited" : "Not favorited"} - ${reflections.length ? "Reflection saved" : "No reflection yet"}</p>
+      <div class="result-actions"></div>
+    `;
+
+    const openButton = document.createElement("button");
+    openButton.type = "button";
+    openButton.textContent = "Open saved day";
+    openButton.setAttribute("aria-label", `Open saved entry for ${formatHistoryDate(entry.date)}`);
+    openButton.addEventListener("click", () => openHistoryEntry(entry.date));
+    card.querySelector(".result-actions").append(openButton);
+    elements.historyList.append(card);
+  });
+}
+
+function openHistoryEntry(date) {
+  const entry = getHistoryEntries().find((item) => item.date === date);
+  if (!entry) {
+    return;
+  }
+
+  const reflections = getReflectionsForDate(date);
+  const favorited = state.favorites.includes(entry.affirmationId);
+  elements.historyDetail.hidden = false;
+  elements.historyDetailMeta.textContent = `${formatHistoryDate(entry.date)} - ${categoryName(entry.category)}`;
+  elements.historyDetailAffirmation.textContent = entry.affirmation;
+  elements.historyDetailStatus.textContent = `${favorited ? "Favorited" : "Not favorited"} - ${reflections.length ? "Reflection saved" : "No reflection saved"}`;
+  elements.historyDetailReflections.innerHTML = "";
+
+  if (!reflections.length) {
+    elements.historyDetailReflections.append(emptyMessage("No reflection was saved for this day."));
+  } else {
+    reflections.forEach((reflection) => {
+      const paragraph = document.createElement("p");
+      paragraph.textContent = reflection.text;
+      elements.historyDetailReflections.append(paragraph);
+    });
+  }
+
+  elements.historyDetail.focus?.({ preventScroll: false });
+}
+
+function formatHistoryDate(date) {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(year, month - 1, day));
 }
 
 function renderSearch() {
@@ -504,6 +639,7 @@ function clearLocalData() {
   setAffirmation(chooseAffirmation(true), { skipBreath: true });
   renderFavorites();
   renderReflections();
+  renderHistory();
   renderSearch();
   setStatus("Local app data cleared.");
 }
@@ -525,6 +661,9 @@ function switchView(viewName) {
   }
   if (viewName === "reflections") {
     renderReflections();
+  }
+  if (viewName === "history") {
+    renderHistory();
   }
   if (viewName === "search") {
     renderSearch();
@@ -622,6 +761,7 @@ async function startApp() {
     setAffirmation(chooseAffirmation(true));
     renderFavorites();
     renderReflections();
+    renderHistory();
     renderSearch();
   } catch {
     setStatus("Affirmation data could not be loaded.");

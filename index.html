@@ -30,6 +30,7 @@
       <button type="button" class="tab-button is-active" data-view="home">Home</button>
       <button type="button" class="tab-button" data-view="favorites">Favorites</button>
       <button type="button" class="tab-button" data-view="reflections">Journal</button>
+      <button type="button" class="tab-button" data-view="history">History</button>
       <button type="button" class="tab-button" data-view="search">Search</button>
       <button type="button" class="tab-button" data-view="settings">Settings</button>
     </nav>
@@ -102,6 +103,23 @@
         <label for="reflectionSearch">Search reflections</label>
         <input id="reflectionSearch" type="search" autocomplete="off" />
         <div class="result-list" id="reflectionsList" aria-live="polite"></div>
+      </section>
+
+      <section class="view" id="historyView" aria-labelledby="historyHeading" hidden>
+        <div class="section-heading">
+          <h2 id="historyHeading">Past Days</h2>
+          <p>Previous days saved on this device, newest first.</p>
+        </div>
+        <div class="result-list" id="historyList" aria-live="polite"></div>
+        <section class="history-detail" id="historyDetail" aria-labelledby="historyDetailHeading" tabindex="-1" hidden>
+          <div class="section-heading">
+            <p class="category-pill" id="historyDetailMeta"></p>
+            <h3 id="historyDetailHeading">Saved day</h3>
+          </div>
+          <p id="historyDetailAffirmation"></p>
+          <p id="historyDetailStatus"></p>
+          <div id="historyDetailReflections"></div>
+        </section>
       </section>
 
       <section class="view" id="searchView" aria-labelledby="searchHeading" hidden>

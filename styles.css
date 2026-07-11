@@ -226,7 +226,7 @@ h3 {
 
 .tab-bar {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   padding: 6px calc(10px + var(--safe-right)) 10px calc(10px + var(--safe-left));
   background: color-mix(in srgb, var(--bg) 92%, transparent);
@@ -267,6 +267,7 @@ h3 {
 .journal-card,
 .settings-card,
 .danger-zone,
+.history-detail,
 .result-card {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -289,7 +290,8 @@ h3 {
 .breath-panel,
 .journal-card,
 .settings-card,
-.danger-zone {
+.danger-zone,
+.history-detail {
   padding: 18px;
 }
 
@@ -389,6 +391,22 @@ h3 {
   margin: 0;
 }
 
+.history-detail {
+  display: grid;
+  gap: 12px;
+}
+
+#historyDetailAffirmation {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 780;
+}
+
+#historyDetailStatus,
+#historyDetailReflections p {
+  margin: 0;
+}
+
 .result-actions {
   display: flex;
   flex-wrap: wrap;
@@ -456,6 +474,7 @@ h3 {
     position: sticky;
     top: 0;
     z-index: 3;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     max-width: 900px;
     margin: 0 auto;
   }
@@ -469,6 +488,7 @@ h3 {
   .journal-card,
   .settings-card,
   .danger-zone,
+  .history-detail,
   .hero {
     padding: 24px;
   }
