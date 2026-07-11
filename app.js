@@ -116,8 +116,12 @@ function dayNumber() {
 function setStatus(message) {
   window.clearTimeout(statusTimer);
   elements.statusMessage.textContent = message;
+  elements.statusMessage.hidden = !message;
+  elements.statusMessage.classList.toggle("is-visible", Boolean(message));
   statusTimer = window.setTimeout(() => {
     elements.statusMessage.textContent = "";
+    elements.statusMessage.hidden = true;
+    elements.statusMessage.classList.remove("is-visible");
   }, 4200);
 }
 

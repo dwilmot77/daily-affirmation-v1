@@ -427,6 +427,7 @@ h3 {
 }
 
 .status {
+  display: none;
   width: min(calc(100% - 32px), 900px);
   min-height: 0;
   margin: 0 auto calc(16px + var(--safe-bottom));
@@ -437,8 +438,8 @@ h3 {
   box-shadow: var(--shadow);
 }
 
-.status:empty {
-  display: none;
+.status.is-visible {
+  display: block;
 }
 
 [hidden] {
