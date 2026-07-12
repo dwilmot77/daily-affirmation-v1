@@ -561,13 +561,20 @@ function formatHistoryDate(date) {
 function renderSearch() {
   const query = elements.affirmationSearch.value.trim().toLowerCase();
   const selected = getCheckedValues(elements.searchCategoryFilters);
-  const categorySet = new Set(selected.length ? selected : Object.keys(appData.categories));
+  const hasCategoryFilter = selected.length > 0;
+
+  elements.searchResults.innerHTML = "";
+  if (!query && !hasCategoryFilter) {
+    elements.searchResults.append(emptyMessage("Select one or more categories to browse affirmations, or enter a keyword to search all affirmations."));
+    return;
+  }
+
+  const categorySet = new Set(hasCategoryFilter ? selected : Object.keys(appData.categories));
   const results = appData.affirmations
     .filter((item) => categorySet.has(item.category))
     .filter((item) => !query || item.text.toLowerCase().includes(query) || categoryName(item.category).toLowerCase().includes(query))
     .slice(0, 80);
 
-  elements.searchResults.innerHTML = "";
   if (!results.length) {
     elements.searchResults.append(emptyMessage("No affirmations match this search."));
     return;
@@ -618,7 +625,7 @@ function renderCategoryControls() {
 
   categoryEntries.forEach(([key, name]) => {
     elements.settingsCategoryFilters.append(categoryCheckbox(key, name, state.settings.categories.includes(key), "setting"));
-    elements.searchCategoryFilters.append(categoryCheckbox(key, name, true, "search"));
+    elements.searchCategoryFilters.append(categoryCheckbox(key, name, false, "search"));
   });
 }
 
