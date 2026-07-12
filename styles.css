@@ -181,7 +181,7 @@ fieldset {
 .category-pill,
 .field-note,
 .section-heading p,
-.status {
+.status-message {
   color: var(--muted);
 }
 
@@ -426,7 +426,7 @@ h3 {
   background: var(--danger);
 }
 
-.status {
+.status-message {
   display: none;
   width: min(calc(100% - 32px), 900px);
   min-height: 0;
@@ -438,12 +438,12 @@ h3 {
   box-shadow: var(--shadow);
 }
 
-.status.is-visible {
+.status-message.is-visible {
   display: block;
 }
 
-.status:empty,
-.status.is-visible:empty {
+.status-message:empty,
+.status-message.is-visible:empty {
   display: none !important;
   width: 0;
   min-height: 0;
