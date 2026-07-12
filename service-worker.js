@@ -1,4 +1,4 @@
-const CACHE_NAME = "daily-affirmation-v1.0.8";
+const CACHE_NAME = "daily-affirmation-v1.0.9";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -6,6 +6,10 @@ const APP_SHELL = [
   "./app.js",
   "./manifest.webmanifest",
   "./data/affirmations.json",
+  "./icons/favicon.ico",
+  "./icons/favicon-16x16.png",
+  "./icons/favicon-32x32.png",
+  "./icons/apple-touch-icon.png",
   "./icons/apple-touch-icon-180.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
