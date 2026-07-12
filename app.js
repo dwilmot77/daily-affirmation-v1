@@ -114,10 +114,11 @@ function dayNumber() {
 }
 
 function setStatus(message) {
+  const statusText = String(message || "").trim();
   window.clearTimeout(statusTimer);
-  elements.statusMessage.textContent = message;
-  elements.statusMessage.hidden = !message;
-  elements.statusMessage.classList.toggle("is-visible", Boolean(message));
+  elements.statusMessage.textContent = statusText;
+  elements.statusMessage.hidden = !statusText;
+  elements.statusMessage.classList.toggle("is-visible", Boolean(statusText));
   statusTimer = window.setTimeout(() => {
     elements.statusMessage.textContent = "";
     elements.statusMessage.hidden = true;

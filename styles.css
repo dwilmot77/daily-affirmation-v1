@@ -442,6 +442,17 @@ h3 {
   display: block;
 }
 
+.status:empty,
+.status.is-visible:empty {
+  display: none !important;
+  width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+
 [hidden] {
   display: none !important;
 }
