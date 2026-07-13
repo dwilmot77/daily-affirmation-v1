@@ -72,12 +72,13 @@
         </div>
 
         <section class="feedback-group" aria-labelledby="feedbackHeading">
-          <h3 id="feedbackHeading">Gentle Growth feedback</h3>
+          <h3 id="feedbackHeading">How did this land today?</h3>
           <div class="segmented">
-            <button type="button" data-feedback="helped">This helped me</button>
-            <button type="button" data-feedback="neutral">Neutral</button>
-            <button type="button" data-feedback="not-today">Not today</button>
+            <button type="button" data-feedback="helped">💚 It helped</button>
+            <button type="button" data-feedback="neutral">🤍 I'm not sure</button>
+            <button type="button" data-feedback="not-today">🌧️ Not today</button>
           </div>
+          <p class="save-status" id="feedbackConfirmation" aria-live="polite"></p>
         </section>
 
         <section class="journal-card" aria-labelledby="reflectionHeading">
@@ -116,6 +117,14 @@
           <h2 id="historyHeading">Past Days</h2>
           <p>Previous days saved on this device, newest first.</p>
         </div>
+        <section class="growth-insights" aria-labelledby="growthInsightsHeading">
+          <div class="section-heading">
+            <h3 id="growthInsightsHeading">Growth Insights</h3>
+            <p id="growthInsightsIntro">A gentle look at what has resonated with you.</p>
+          </div>
+          <div class="feedback-totals" id="feedbackTotals"></div>
+          <div class="result-list" id="categoryInsights"></div>
+        </section>
         <div class="result-list" id="historyList" aria-live="polite"></div>
         <section class="history-detail" id="historyDetail" aria-labelledby="historyDetailHeading" tabindex="-1" hidden>
           <div class="section-heading">

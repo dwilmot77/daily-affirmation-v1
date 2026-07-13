@@ -343,6 +343,25 @@ h3 {
   gap: 10px;
 }
 
+.growth-insights {
+  display: grid;
+  gap: 12px;
+}
+
+.feedback-totals {
+  display: grid;
+  gap: 8px;
+}
+
+.feedback-totals p {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-weight: 760;
+}
+
 .check-row {
   display: flex;
   gap: 10px;
@@ -482,6 +501,10 @@ h3 {
   }
 
   .segmented {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .feedback-totals {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 

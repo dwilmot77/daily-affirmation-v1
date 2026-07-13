@@ -1,6 +1,6 @@
 const DATA_URL = "data/affirmations.json";
 const STORAGE_KEY = "dailyAffirmation.v1";
-const STORAGE_SCHEMA_VERSION = 2;
+const STORAGE_SCHEMA_VERSION = 3;
 const serviceWorkerPath = "service-worker.js";
 const REFLECTION_SAVE_DELAY = 1200;
 const DEFAULT_LANGUAGE = "en";
@@ -31,10 +31,11 @@ const translations = {
     favorited: "Favorited",
     play: "Play",
     stop: "Stop",
-    feedbackHeading: "Gentle Growth feedback",
-    helped: "This helped me",
-    neutral: "Neutral",
-    notToday: "Not today",
+    feedbackHeading: "How did this land today?",
+    helped: "💚 It helped",
+    neutral: "🤍 I'm not sure",
+    notToday: "🌧️ Not today",
+    feedbackSaved: "Saved. Thank you for checking in.",
     reflectionHeading: "Today's reflection",
     reflectionLabel: "Reflection for this affirmation",
     reflectionPlaceholder: "Write anything you want to remember from today.",
@@ -46,6 +47,15 @@ const translations = {
     reflectionSearchLabel: "Search reflections",
     historyHeading: "Past Days",
     historyIntro: "Previous days saved on this device, newest first.",
+    growthInsightsHeading: "Growth Insights",
+    growthInsightsIntro: "A gentle look at what has resonated with you.",
+    totalHelped: "It helped",
+    totalNeutral: "I'm not sure",
+    totalNotToday: "Not today",
+    noGrowthInsights: "Your check-ins will appear here after you respond to a few affirmations.",
+    categoryResonated: "🌿 {category} affirmations have resonated with you most often.",
+    categoryNotToday: "🌱 {category} affirmations were marked \"Not today\" more frequently recently. That's okay—different messages resonate at different times.",
+    categorySummary: "{category}: {helped} helped, {neutral} not sure, {notToday} not today.",
     savedDay: "Saved day",
     searchHeading: "Search affirmations",
     searchIntro: "Search all categories, including optional Faith affirmations.",
@@ -84,7 +94,6 @@ const translations = {
     savedFavorite: "Saved to favorites.",
     copied: "Affirmation copied.",
     copyUnavailable: "Copy is not available in this browser.",
-    feedbackSaved: "Feedback saved locally.",
     noFavorites: "No favorites match this search.",
     removeFavorite: "Remove favorite",
     noReflections: "No saved reflections match this search.",
@@ -150,10 +159,11 @@ const translations = {
     favorited: "Guardada",
     play: "Reproducir",
     stop: "Detener",
-    feedbackHeading: "Comentario de crecimiento suave",
-    helped: "Esto me ayudó",
-    neutral: "Neutral",
-    notToday: "Hoy no",
+    feedbackHeading: "¿Cómo te llegó hoy?",
+    helped: "💚 Me ayudó",
+    neutral: "🤍 No estoy seguro",
+    notToday: "🌧️ Hoy no",
+    feedbackSaved: "Guardado. Gracias por revisar cómo te sientes.",
     reflectionHeading: "Reflexión de hoy",
     reflectionLabel: "Reflexión para esta afirmación",
     reflectionPlaceholder: "Escribe cualquier cosa que quieras recordar de hoy.",
@@ -165,6 +175,15 @@ const translations = {
     reflectionSearchLabel: "Buscar reflexiones",
     historyHeading: "Días anteriores",
     historyIntro: "Días anteriores guardados en este dispositivo, del más reciente al más antiguo.",
+    growthInsightsHeading: "Reflexiones de crecimiento",
+    growthInsightsIntro: "Una mirada amable a lo que ha resonado contigo.",
+    totalHelped: "Me ayudó",
+    totalNeutral: "No estoy seguro",
+    totalNotToday: "Hoy no",
+    noGrowthInsights: "Tus respuestas aparecerán aquí después de responder a algunas afirmaciones.",
+    categoryResonated: "🌿 Las afirmaciones de {category} han resonado contigo con más frecuencia.",
+    categoryNotToday: "🌱 Las afirmaciones de {category} fueron marcadas \"Hoy no\" con más frecuencia recientemente. Está bien: distintos mensajes resuenan en distintos momentos.",
+    categorySummary: "{category}: {helped} ayudaron, {neutral} no seguro, {notToday} hoy no.",
     savedDay: "Día guardado",
     searchHeading: "Buscar afirmaciones",
     searchIntro: "Busca en todas las categorías, incluidas las afirmaciones opcionales de Fe.",
@@ -203,7 +222,6 @@ const translations = {
     savedFavorite: "Guardada en favoritas.",
     copied: "Afirmación copiada.",
     copyUnavailable: "Copiar no está disponible en este navegador.",
-    feedbackSaved: "Comentario guardado localmente.",
     noFavorites: "No hay favoritas que coincidan con esta búsqueda.",
     removeFavorite: "Eliminar favorita",
     noReflections: "No hay reflexiones guardadas que coincidan con esta búsqueda.",
@@ -308,6 +326,7 @@ const defaultState = {
   history: {},
   customAffirmations: [],
   feedback: {},
+  feedbackResponses: {},
 };
 
 const elements = {
@@ -328,6 +347,7 @@ const elements = {
   reflectionText: document.querySelector("#reflectionText"),
   reflectionContext: document.querySelector("#reflectionContext"),
   reflectionSaveStatus: document.querySelector("#reflectionSaveStatus"),
+  feedbackConfirmation: document.querySelector("#feedbackConfirmation"),
   favoriteSearch: document.querySelector("#favoriteSearch"),
   favoritesList: document.querySelector("#favoritesList"),
   reflectionSearch: document.querySelector("#reflectionSearch"),
@@ -338,6 +358,8 @@ const elements = {
   historyDetailAffirmation: document.querySelector("#historyDetailAffirmation"),
   historyDetailStatus: document.querySelector("#historyDetailStatus"),
   historyDetailReflections: document.querySelector("#historyDetailReflections"),
+  feedbackTotals: document.querySelector("#feedbackTotals"),
+  categoryInsights: document.querySelector("#categoryInsights"),
   affirmationSearch: document.querySelector("#affirmationSearch"),
   searchResults: document.querySelector("#searchResults"),
   searchCategoryFilters: document.querySelector("#searchCategoryFilters"),
@@ -365,6 +387,7 @@ let breathGateOpen = true;
 let breathExerciseTimer = 0;
 let statusTimer = 0;
 let reflectionSaveTimer = 0;
+let feedbackConfirmationTimer = 0;
 let speechVoices = [];
 
 const localSaveProvider = {
@@ -441,6 +464,7 @@ function migrateSavedState(saved) {
     history: normalizeHistory(saved.history),
     customAffirmations: Array.isArray(saved.customAffirmations) ? saved.customAffirmations : [],
     feedback: plainObject(saved.feedback),
+    feedbackResponses: plainObject(saved.feedbackResponses),
   };
 }
 
@@ -510,6 +534,16 @@ function setLabelText(forId, value) {
 
 function setSaveStatus(message) {
   elements.reflectionSaveStatus.textContent = message;
+}
+
+function setFeedbackConfirmation(message) {
+  window.clearTimeout(feedbackConfirmationTimer);
+  elements.feedbackConfirmation.textContent = message;
+  if (message) {
+    feedbackConfirmationTimer = window.setTimeout(() => {
+      elements.feedbackConfirmation.textContent = "";
+    }, 3200);
+  }
 }
 
 function setCheckLabel(input, value) {
@@ -680,6 +714,7 @@ function setAffirmation(item, options = {}) {
   elements.favoriteButton.textContent = state.favorites.includes(item.id) ? translate("favorited") : translate("favorite");
   elements.reflectionContext.textContent = `${todayKey()} · ${categoryName(item.category)}`;
   loadCurrentReflection();
+  renderFeedbackSelection();
 
   if (!options.skipBreath && !state.daily.revealed) {
     breathGateOpen = false;
@@ -735,6 +770,23 @@ function stopBreathingExercise() {
 
 function reflectionId(item = currentAffirmation) {
   return item ? `${todayKey()}::${item.id}` : "";
+}
+
+function feedbackResponseId(item = currentAffirmation) {
+  return item ? `${todayKey()}::${item.id}` : "";
+}
+
+function currentFeedbackResponse() {
+  return state.feedbackResponses[feedbackResponseId()]?.response || "";
+}
+
+function renderFeedbackSelection() {
+  const selected = currentFeedbackResponse();
+  document.querySelectorAll("[data-feedback]").forEach((button) => {
+    const isSelected = button.dataset.feedback === selected;
+    button.classList.toggle("is-selected", isSelected);
+    button.setAttribute("aria-pressed", String(isSelected));
+  });
 }
 
 function loadCurrentReflection() {
@@ -823,21 +875,40 @@ function saveFeedback(value, announce = true) {
 
   const category = currentAffirmation.category;
   state.feedback[category] = state.feedback[category] || {};
-  if (value === "helped") {
-    state.feedback[category].helped = (state.feedback[category].helped || 0) + 1;
-  }
-  if (value === "neutral") {
-    state.feedback[category].neutral = (state.feedback[category].neutral || 0) + 1;
-  }
-  if (value === "not-today") {
-    state.feedback[category].notToday = (state.feedback[category].notToday || 0) + 1;
-  }
+
   if (value === "favorite") {
     state.feedback[category].favorite = (state.feedback[category].favorite || 0) + 1;
+    saveState();
+    return;
   }
+
+  const metricKey = value === "not-today" ? "notToday" : value;
+  const latestState = loadState();
+  state = latestState;
+  state.feedback[category] = state.feedback[category] || {};
+
+  const responseId = feedbackResponseId();
+  const previousResponse = state.feedbackResponses[responseId]?.response;
+  if (previousResponse && previousResponse !== value) {
+    const previousKey = previousResponse === "not-today" ? "notToday" : previousResponse;
+    state.feedback[category][previousKey] = Math.max(0, (state.feedback[category][previousKey] || 0) - 1);
+  }
+  if (previousResponse !== value) {
+    state.feedback[category][metricKey] = (state.feedback[category][metricKey] || 0) + 1;
+  }
+  state.feedbackResponses[responseId] = {
+    id: responseId,
+    date: todayKey(),
+    affirmationId: currentAffirmation.id,
+    category,
+    response: value,
+    updatedAt: new Date().toISOString(),
+  };
   saveState();
+  renderFeedbackSelection();
+  renderHistory();
   if (announce) {
-    setStatus(translate("feedbackSaved"));
+    setFeedbackConfirmation(translate("feedbackSaved"));
   }
 }
 
@@ -940,12 +1011,112 @@ function getHistoryEntries() {
   return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date));
 }
 
+function emptyFeedbackCounts() {
+  return { helped: 0, neutral: 0, notToday: 0 };
+}
+
+function addFeedbackCount(counts, response) {
+  if (response === "helped") {
+    counts.helped += 1;
+  }
+  if (response === "neutral") {
+    counts.neutral += 1;
+  }
+  if (response === "not-today") {
+    counts.notToday += 1;
+  }
+}
+
+function getGrowthInsightStats() {
+  const totals = emptyFeedbackCounts();
+  const byCategory = {};
+  Object.values(state.feedbackResponses || {}).forEach((entry) => {
+    if (!entry?.response || !entry?.category) {
+      return;
+    }
+    addFeedbackCount(totals, entry.response);
+    byCategory[entry.category] = byCategory[entry.category] || emptyFeedbackCounts();
+    addFeedbackCount(byCategory[entry.category], entry.response);
+  });
+  return { totals, byCategory };
+}
+
+function countTotal(counts) {
+  return counts.helped + counts.neutral + counts.notToday;
+}
+
+function renderGrowthInsights() {
+  if (!elements.feedbackTotals || !elements.categoryInsights) {
+    return;
+  }
+
+  const { totals, byCategory } = getGrowthInsightStats();
+  elements.feedbackTotals.innerHTML = "";
+  elements.categoryInsights.innerHTML = "";
+
+  [
+    [translate("totalHelped"), totals.helped],
+    [translate("totalNeutral"), totals.neutral],
+    [translate("totalNotToday"), totals.notToday],
+  ].forEach(([label, count]) => {
+    const item = document.createElement("p");
+    item.textContent = `${label}: ${count}`;
+    elements.feedbackTotals.append(item);
+  });
+
+  const categoryEntries = Object.entries(byCategory).filter(([, counts]) => countTotal(counts) > 0);
+  if (!categoryEntries.length) {
+    elements.categoryInsights.append(emptyMessage(translate("noGrowthInsights")));
+    return;
+  }
+
+  const mostHelped = categoryEntries
+    .filter(([, counts]) => counts.helped > 0)
+    .sort((a, b) => b[1].helped - a[1].helped || a[0].localeCompare(b[0]))[0];
+  const mostNotToday = categoryEntries
+    .filter(([, counts]) => counts.notToday > 0)
+    .sort((a, b) => b[1].notToday - a[1].notToday || a[0].localeCompare(b[0]))[0];
+
+  if (mostHelped) {
+    const card = document.createElement("article");
+    card.className = "result-card";
+    card.append(emptyMessage(translate("categoryResonated", { category: categoryName(mostHelped[0]) })));
+    elements.categoryInsights.append(card);
+  }
+
+  if (mostNotToday && mostNotToday[0] !== mostHelped?.[0]) {
+    const card = document.createElement("article");
+    card.className = "result-card";
+    card.append(emptyMessage(translate("categoryNotToday", { category: categoryName(mostNotToday[0]) })));
+    elements.categoryInsights.append(card);
+  }
+
+  categoryEntries
+    .sort((a, b) => countTotal(b[1]) - countTotal(a[1]) || a[0].localeCompare(b[0]))
+    .forEach(([category, counts]) => {
+      const card = document.createElement("article");
+      card.className = "result-card";
+      card.append(
+        emptyMessage(
+          translate("categorySummary", {
+            category: categoryName(category),
+            helped: counts.helped,
+            neutral: counts.neutral,
+            notToday: counts.notToday,
+          }),
+        ),
+      );
+      elements.categoryInsights.append(card);
+    });
+}
+
 function renderHistory() {
   if (!elements.historyList) {
     return;
   }
 
   const entries = getHistoryEntries();
+  renderGrowthInsights();
   elements.historyList.innerHTML = "";
   elements.historyDetail.hidden = true;
 
@@ -1218,6 +1389,8 @@ function applyTranslations() {
   setLabelText("reflectionSearch", translate("reflectionSearchLabel"));
   setText("#historyHeading", translate("historyHeading"));
   setText("#historyView > .section-heading p", translate("historyIntro"));
+  setText("#growthInsightsHeading", translate("growthInsightsHeading"));
+  setText("#growthInsightsIntro", translate("growthInsightsIntro"));
   setText("#historyDetailHeading", translate("savedDay"));
 
   setText("#searchHeading", translate("searchHeading"));
