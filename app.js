@@ -1,5 +1,6 @@
 const DATA_URL = "data/affirmations.json";
 const STORAGE_KEY = "dailyAffirmation.v1";
+const STORAGE_SCHEMA_VERSION = 2;
 const serviceWorkerPath = "service-worker.js";
 const REFLECTION_SAVE_DELAY = 1200;
 const DEFAULT_LANGUAGE = "en";
@@ -272,6 +273,7 @@ const affirmationTranslations = {
 };
 
 const defaultState = {
+  schemaVersion: STORAGE_SCHEMA_VERSION,
   settings: {
     theme: "system",
     language: DEFAULT_LANGUAGE,
@@ -301,6 +303,7 @@ const defaultState = {
   favorites: [],
   reflections: {},
   history: {},
+  customAffirmations: [],
   feedback: {},
 };
 
@@ -374,26 +377,61 @@ const localSaveProvider = {
 
 function loadState() {
   try {
-    const saved = localSaveProvider.load();
-    const savedSettings = saved?.settings || {};
-    const language = SUPPORTED_LANGUAGES.includes(savedSettings.language) ? savedSettings.language : DEFAULT_LANGUAGE;
-    return {
-      ...structuredClone(defaultState),
-      ...saved,
-      settings: { ...defaultState.settings, ...savedSettings, language },
-      daily: { ...defaultState.daily, ...saved?.daily },
-      favorites: Array.isArray(saved?.favorites) ? saved.favorites : [],
-      reflections: saved?.reflections || {},
-      history: saved?.history || {},
-      feedback: saved?.feedback || {},
-    };
+    return migrateSavedState(localSaveProvider.load());
   } catch {
     return structuredClone(defaultState);
   }
 }
 
 function saveState() {
+  state.schemaVersion = STORAGE_SCHEMA_VERSION;
   localSaveProvider.save(state);
+}
+
+function plainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function isPlainObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeHistory(history) {
+  return Object.fromEntries(
+    Object.entries(plainObject(history)).map(([date, entry]) => {
+      if (!isPlainObject(entry)) {
+        return [date, entry];
+      }
+      return [date, { ...entry, date: entry.date || date }];
+    }),
+  );
+}
+
+function migrateSavedState(saved) {
+  if (!plainObject(saved)) {
+    return structuredClone(defaultState);
+  }
+
+  const savedSettings = plainObject(saved.settings);
+  const language = SUPPORTED_LANGUAGES.includes(savedSettings.language) ? savedSettings.language : DEFAULT_LANGUAGE;
+
+  return {
+    ...structuredClone(defaultState),
+    ...saved,
+    schemaVersion: STORAGE_SCHEMA_VERSION,
+    settings: {
+      ...defaultState.settings,
+      ...savedSettings,
+      language,
+      categories: Array.isArray(savedSettings.categories) ? savedSettings.categories : defaultState.settings.categories,
+    },
+    daily: { ...defaultState.daily, ...plainObject(saved.daily) },
+    favorites: Array.isArray(saved.favorites) ? saved.favorites : [],
+    reflections: plainObject(saved.reflections),
+    history: normalizeHistory(saved.history),
+    customAffirmations: Array.isArray(saved.customAffirmations) ? saved.customAffirmations : [],
+    feedback: plainObject(saved.feedback),
+  };
 }
 
 function todayKey() {
