@@ -181,6 +181,7 @@ fieldset {
 .category-pill,
 .field-note,
 .section-heading p,
+.save-status,
 .status-message {
   color: var(--muted);
 }
@@ -372,8 +373,15 @@ h3 {
 }
 
 .section-heading p,
-.field-note {
+.field-note,
+.save-status {
   margin: 0;
+}
+
+.save-status {
+  min-height: 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .result-list {

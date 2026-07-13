@@ -1,14 +1,286 @@
 const DATA_URL = "data/affirmations.json";
 const STORAGE_KEY = "dailyAffirmation.v1";
 const serviceWorkerPath = "service-worker.js";
+const REFLECTION_SAVE_DELAY = 1200;
+const DEFAULT_LANGUAGE = "en";
+const SUPPORTED_LANGUAGES = ["en", "es"];
+
+const translations = {
+  en: {
+    appTitle: "Daily Affirmation",
+    skipLink: "Skip to affirmation",
+    toggleDarkMode: "Toggle dark mode",
+    navHome: "Home",
+    navFavorites: "Favorites",
+    navJournal: "Journal",
+    navHistory: "History",
+    navSearch: "Search",
+    navSettings: "Settings",
+    primaryNav: "Primary",
+    homeHeading: "Today's affirmation",
+    breathHeading: "Take one slow breath",
+    breathPrompt: "When you are ready, reveal today's affirmation.",
+    revealButton: "Reveal Today's Affirmation",
+    actionsLabel: "Affirmation actions",
+    newAffirmation: "New Affirmation",
+    copy: "Copy",
+    favorite: "Favorite",
+    favorited: "Favorited",
+    play: "Play",
+    stop: "Stop",
+    feedbackHeading: "Gentle Growth feedback",
+    helped: "This helped me",
+    neutral: "Neutral",
+    notToday: "Not today",
+    reflectionHeading: "Today's reflection",
+    reflectionLabel: "Reflection for this affirmation",
+    reflectionPlaceholder: "Write anything you want to remember from today.",
+    favoritesHeading: "Favorites",
+    favoritesIntro: "Saved on this device only.",
+    favoriteSearchLabel: "Search favorites",
+    reflectionsHeading: "Saved reflections",
+    reflectionsIntro: "Return to previous notes saved on this device.",
+    reflectionSearchLabel: "Search reflections",
+    historyHeading: "Past Days",
+    historyIntro: "Previous days saved on this device, newest first.",
+    savedDay: "Saved day",
+    searchHeading: "Search affirmations",
+    searchIntro: "Search all categories, including optional Faith affirmations.",
+    keyword: "Keyword",
+    searchCategories: "Search categories",
+    settingsHeading: "Settings",
+    settingsIntro: "Preferences stay on this device.",
+    theme: "Theme",
+    systemTheme: "System theme",
+    lightMode: "Light mode",
+    darkMode: "Dark mode",
+    language: "Language",
+    english: "English",
+    spanish: "Spanish",
+    textSize: "Text size",
+    highContrast: "High contrast",
+    breatheFirst: "Breathe First",
+    readAloudControls: "Read aloud controls",
+    playbackVoice: "Playback voice",
+    defaultVoice: "Default voice",
+    playbackSpeed: "Playback speed",
+    speedValue: "Speed: {value}x",
+    categoriesLegend: "Affirmation categories",
+    faithOptional: "Faith is optional and can be selected here.",
+    reminderHeading: "Daily reminder preparation",
+    reminderPreference: "Prepare a daily reminder preference",
+    preferredTime: "Preferred time",
+    checkNotifications: "Check notification support",
+    clearDataHeading: "Clear local app data",
+    clearDataDescription: "This removes favorites, reflections, settings, and feedback from this browser.",
+    clearDataButton: "Clear local app data",
+    saving: "Saving...",
+    savedJustNow: "Saved just now",
+    affirmationsLoading: "Affirmations are still loading.",
+    removedFavorite: "Removed from favorites.",
+    savedFavorite: "Saved to favorites.",
+    copied: "Affirmation copied.",
+    copyUnavailable: "Copy is not available in this browser.",
+    feedbackSaved: "Feedback saved locally.",
+    noFavorites: "No favorites match this search.",
+    removeFavorite: "Remove favorite",
+    noReflections: "No saved reflections match this search.",
+    open: "Open",
+    noPastDays: "No past days yet. After today passes, saved days will appear here.",
+    notFavorited: "Not favorited",
+    reflectionSaved: "Reflection saved",
+    noReflectionYet: "No reflection yet",
+    openSavedDay: "Open saved day",
+    openSavedEntry: "Open saved entry for {date}",
+    noReflectionSaved: "No reflection saved",
+    noReflectionForDay: "No reflection was saved for this day.",
+    searchPrompt: "Select one or more categories to browse affirmations, or enter a keyword to search all affirmations.",
+    noAffirmations: "No affirmations match this search.",
+    useThis: "Use this",
+    readAloudOff: "Read aloud is turned off in Settings.",
+    speechUnavailable: "Speech synthesis is not available in this browser.",
+    readAloudStopped: "Read aloud stopped.",
+    notificationsUnavailable: "Notifications are not available in this browser or device.",
+    notificationsNeedSecure: "Notifications require a secure https address on phones. This local http test page cannot enable them.",
+    notificationSupport: "Notification support is available. Current permission: {permission}. This app stores your reminder preference, but browsers may not run daily reminders unless the app is opened or the platform supports scheduled notifications.",
+    clearConfirm: "Clear all Daily Affirmation favorites, reflections, settings, and feedback from this browser?",
+    dataCleared: "Local app data cleared.",
+    offlineUnavailable: "Offline mode was not available in this browser.",
+    chooseCategory: "Choose at least one category.",
+    dataLoadError: "Affirmation data could not be loaded.",
+    goodMorning: "Good morning",
+    goodAfternoon: "Good afternoon",
+    goodEvening: "Good evening",
+    greetingSuffix: "Take what helps and leave the rest.",
+    categories: {
+      general: "General",
+      gratitude: "Gratitude",
+      faith: "Faith",
+      anxiety_calm: "Anxiety and Calm",
+      healing: "Healing",
+      confidence: "Confidence",
+      relationships: "Relationships",
+      happiness: "Happiness",
+    },
+  },
+  es: {
+    appTitle: "Afirmación Diaria",
+    skipLink: "Saltar a la afirmación",
+    toggleDarkMode: "Cambiar modo oscuro",
+    navHome: "Inicio",
+    navFavorites: "Favoritas",
+    navJournal: "Diario",
+    navHistory: "Historial",
+    navSearch: "Buscar",
+    navSettings: "Ajustes",
+    primaryNav: "Principal",
+    homeHeading: "Afirmación de hoy",
+    breathHeading: "Toma una respiración lenta",
+    breathPrompt: "Cuando estés listo, revela la afirmación de hoy.",
+    revealButton: "Revelar la afirmación de hoy",
+    actionsLabel: "Acciones de afirmación",
+    newAffirmation: "Nueva afirmación",
+    copy: "Copiar",
+    favorite: "Favorita",
+    favorited: "Guardada",
+    play: "Reproducir",
+    stop: "Detener",
+    feedbackHeading: "Comentario de crecimiento suave",
+    helped: "Esto me ayudó",
+    neutral: "Neutral",
+    notToday: "Hoy no",
+    reflectionHeading: "Reflexión de hoy",
+    reflectionLabel: "Reflexión para esta afirmación",
+    reflectionPlaceholder: "Escribe cualquier cosa que quieras recordar de hoy.",
+    favoritesHeading: "Favoritas",
+    favoritesIntro: "Guardadas solo en este dispositivo.",
+    favoriteSearchLabel: "Buscar favoritas",
+    reflectionsHeading: "Reflexiones guardadas",
+    reflectionsIntro: "Vuelve a notas anteriores guardadas en este dispositivo.",
+    reflectionSearchLabel: "Buscar reflexiones",
+    historyHeading: "Días anteriores",
+    historyIntro: "Días anteriores guardados en este dispositivo, del más reciente al más antiguo.",
+    savedDay: "Día guardado",
+    searchHeading: "Buscar afirmaciones",
+    searchIntro: "Busca en todas las categorías, incluidas las afirmaciones opcionales de Fe.",
+    keyword: "Palabra clave",
+    searchCategories: "Categorías de búsqueda",
+    settingsHeading: "Ajustes",
+    settingsIntro: "Las preferencias permanecen en este dispositivo.",
+    theme: "Tema",
+    systemTheme: "Tema del sistema",
+    lightMode: "Modo claro",
+    darkMode: "Modo oscuro",
+    language: "Idioma",
+    english: "Inglés",
+    spanish: "Español",
+    textSize: "Tamaño del texto",
+    highContrast: "Alto contraste",
+    breatheFirst: "Respirar primero",
+    readAloudControls: "Controles de lectura en voz alta",
+    playbackVoice: "Voz de reproducción",
+    defaultVoice: "Voz predeterminada",
+    playbackSpeed: "Velocidad de reproducción",
+    speedValue: "Velocidad: {value}x",
+    categoriesLegend: "Categorías de afirmaciones",
+    faithOptional: "Fe es opcional y se puede seleccionar aquí.",
+    reminderHeading: "Preparación del recordatorio diario",
+    reminderPreference: "Preparar una preferencia de recordatorio diario",
+    preferredTime: "Hora preferida",
+    checkNotifications: "Verificar soporte de notificaciones",
+    clearDataHeading: "Borrar datos locales de la app",
+    clearDataDescription: "Esto elimina favoritas, reflexiones, ajustes y comentarios de este navegador.",
+    clearDataButton: "Borrar datos locales de la app",
+    saving: "Guardando...",
+    savedJustNow: "Guardado hace un momento",
+    affirmationsLoading: "Las afirmaciones todavía se están cargando.",
+    removedFavorite: "Eliminada de favoritas.",
+    savedFavorite: "Guardada en favoritas.",
+    copied: "Afirmación copiada.",
+    copyUnavailable: "Copiar no está disponible en este navegador.",
+    feedbackSaved: "Comentario guardado localmente.",
+    noFavorites: "No hay favoritas que coincidan con esta búsqueda.",
+    removeFavorite: "Eliminar favorita",
+    noReflections: "No hay reflexiones guardadas que coincidan con esta búsqueda.",
+    open: "Abrir",
+    noPastDays: "Aún no hay días anteriores. Después de que pase hoy, los días guardados aparecerán aquí.",
+    notFavorited: "No guardada",
+    reflectionSaved: "Reflexión guardada",
+    noReflectionYet: "Sin reflexión todavía",
+    openSavedDay: "Abrir día guardado",
+    openSavedEntry: "Abrir entrada guardada para {date}",
+    noReflectionSaved: "No hay reflexión guardada",
+    noReflectionForDay: "No se guardó ninguna reflexión para este día.",
+    searchPrompt: "Selecciona una o más categorías para explorar afirmaciones, o escribe una palabra clave para buscar en todas las afirmaciones.",
+    noAffirmations: "No hay afirmaciones que coincidan con esta búsqueda.",
+    useThis: "Usar esta",
+    readAloudOff: "La lectura en voz alta está desactivada en Ajustes.",
+    speechUnavailable: "La síntesis de voz no está disponible en este navegador.",
+    readAloudStopped: "Lectura en voz alta detenida.",
+    notificationsUnavailable: "Las notificaciones no están disponibles en este navegador o dispositivo.",
+    notificationsNeedSecure: "Las notificaciones requieren una dirección https segura en teléfonos. Esta página local http no puede activarlas.",
+    notificationSupport: "El soporte de notificaciones está disponible. Permiso actual: {permission}. Esta app guarda tu preferencia de recordatorio, pero es posible que el navegador no ejecute recordatorios diarios a menos que la app esté abierta o la plataforma admita notificaciones programadas.",
+    clearConfirm: "¿Borrar todas las favoritas, reflexiones, ajustes y comentarios de Daily Affirmation de este navegador?",
+    dataCleared: "Datos locales de la app borrados.",
+    offlineUnavailable: "El modo sin conexión no estuvo disponible en este navegador.",
+    chooseCategory: "Elige al menos una categoría.",
+    dataLoadError: "No se pudieron cargar los datos de afirmaciones.",
+    goodMorning: "Buenos días",
+    goodAfternoon: "Buenas tardes",
+    goodEvening: "Buenas noches",
+    greetingSuffix: "Toma lo que te ayude y deja lo demás.",
+    categories: {
+      general: "General",
+      gratitude: "Gratitud",
+      faith: "Fe",
+      anxiety_calm: "Ansiedad y calma",
+      healing: "Sanación",
+      confidence: "Confianza",
+      relationships: "Relaciones",
+      happiness: "Felicidad",
+    },
+  },
+};
+
+const affirmationTranslations = {
+  es: {
+    "general-001": "Puedo vivir este día paso a paso.",
+    "general-002": "No tengo que hacer todo de una vez.",
+    "general-003": "Puedo volver a empezar con una mente clara.",
+    "gratitude-001": "Puedo notar algo bueno hoy.",
+    "gratitude-002": "Puedo agradecer sin fingir que la vida es perfecta.",
+    "gratitude-003": "Puedo dejar que una pequeña comodidad importe.",
+    "faith-001": "Puedo llevar este día a Dios con el corazón abierto.",
+    "faith-002": "Puedo descansar en un amor más grande que mi miedo.",
+    "faith-003": "Puedo pedir guía paso a paso.",
+    "anxiety_calm-001": "Puedo tomar una respiración lenta ahora mismo.",
+    "anxiety_calm-002": "Puedo recordarle a mi cuerpo que estoy aquí.",
+    "anxiety_calm-003": "Puedo sentir ansiedad y aun así estar a salvo en este momento.",
+    "healing-001": "Puedo sanar a un ritmo que respete mi vida.",
+    "healing-002": "Puedo ser amable con lo que todavía se siente sensible.",
+    "healing-003": "Puedo cuidar las partes de mí que necesitan tiempo.",
+    "confidence-001": "Puedo confiar en mí para aprender lo que necesito.",
+    "confidence-002": "Puedo construir confianza con la práctica.",
+    "confidence-003": "Puedo hablar con claridad y amabilidad.",
+    "relationships-001": "Puedo aportar honestidad y calidez a mis relaciones.",
+    "relationships-002": "Puedo escuchar con toda mi atención.",
+    "relationships-003": "Puedo poner límites con respeto.",
+    "happiness-001": "Puedo recibir un pequeño momento de alegría hoy.",
+    "happiness-002": "Tengo permiso para disfrutar lo que se siente bien.",
+    "happiness-003": "Puedo notar una chispa de alegría.",
+  },
+};
 
 const defaultState = {
   settings: {
     theme: "system",
+    language: DEFAULT_LANGUAGE,
     textSize: "0",
     highContrast: false,
     breatheFirst: false,
     readAloud: true,
+    voiceURI: "",
+    speechRate: "1",
     categories: [
       "general",
       "gratitude",
@@ -48,6 +320,7 @@ const elements = {
   statusMessage: document.querySelector("#statusMessage"),
   reflectionText: document.querySelector("#reflectionText"),
   reflectionContext: document.querySelector("#reflectionContext"),
+  reflectionSaveStatus: document.querySelector("#reflectionSaveStatus"),
   favoriteSearch: document.querySelector("#favoriteSearch"),
   favoritesList: document.querySelector("#favoritesList"),
   reflectionSearch: document.querySelector("#reflectionSearch"),
@@ -63,10 +336,14 @@ const elements = {
   searchCategoryFilters: document.querySelector("#searchCategoryFilters"),
   settingsCategoryFilters: document.querySelector("#settingsCategoryFilters"),
   themeSelect: document.querySelector("#themeSelect"),
+  languageSelect: document.querySelector("#languageSelect"),
   textSizeRange: document.querySelector("#textSizeRange"),
   highContrastToggle: document.querySelector("#highContrastToggle"),
   breatheToggle: document.querySelector("#breatheToggle"),
   readAloudToggle: document.querySelector("#readAloudToggle"),
+  voiceSelect: document.querySelector("#voiceSelect"),
+  speechRateRange: document.querySelector("#speechRateRange"),
+  speechRateValue: document.querySelector("#speechRateValue"),
   reminderToggle: document.querySelector("#reminderToggle"),
   reminderTime: document.querySelector("#reminderTime"),
   checkNotificationsButton: document.querySelector("#checkNotificationsButton"),
@@ -80,14 +357,30 @@ let state = loadState();
 let currentAffirmation = null;
 let breathGateOpen = true;
 let statusTimer = 0;
+let reflectionSaveTimer = 0;
+let speechVoices = [];
+
+const localSaveProvider = {
+  load() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY));
+  },
+  save(nextState) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+  },
+  clear() {
+    localStorage.removeItem(STORAGE_KEY);
+  },
+};
 
 function loadState() {
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const saved = localSaveProvider.load();
+    const savedSettings = saved?.settings || {};
+    const language = SUPPORTED_LANGUAGES.includes(savedSettings.language) ? savedSettings.language : DEFAULT_LANGUAGE;
     return {
       ...structuredClone(defaultState),
       ...saved,
-      settings: { ...defaultState.settings, ...saved?.settings },
+      settings: { ...defaultState.settings, ...savedSettings, language },
       daily: { ...defaultState.daily, ...saved?.daily },
       favorites: Array.isArray(saved?.favorites) ? saved.favorites : [],
       reflections: saved?.reflections || {},
@@ -100,7 +393,7 @@ function loadState() {
 }
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  localSaveProvider.save(state);
 }
 
 function todayKey() {
@@ -124,6 +417,54 @@ function setStatus(message) {
     elements.statusMessage.hidden = true;
     elements.statusMessage.classList.remove("is-visible");
   }, 4200);
+}
+
+function currentLanguage() {
+  return SUPPORTED_LANGUAGES.includes(state.settings.language) ? state.settings.language : DEFAULT_LANGUAGE;
+}
+
+function translate(key, replacements = {}) {
+  const dictionary = translations[currentLanguage()] || translations[DEFAULT_LANGUAGE];
+  const fallback = translations[DEFAULT_LANGUAGE];
+  let value = dictionary[key] ?? fallback[key] ?? key;
+  Object.entries(replacements).forEach(([name, replacement]) => {
+    value = value.replaceAll(`{${name}}`, replacement);
+  });
+  return value;
+}
+
+function translateCategory(key) {
+  return translations[currentLanguage()]?.categories?.[key] || translations[DEFAULT_LANGUAGE].categories[key] || appData.categories[key] || key;
+}
+
+function affirmationText(item) {
+  if (!item) {
+    return "";
+  }
+  const language = currentLanguage();
+  return item.translations?.[language] || item[`text_${language}`] || affirmationTranslations[language]?.[item.id] || item.text;
+}
+
+function setText(selector, value) {
+  const element = document.querySelector(selector);
+  if (element) {
+    element.textContent = value;
+  }
+}
+
+function setLabelText(forId, value) {
+  setText(`label[for="${forId}"]`, value);
+}
+
+function setSaveStatus(message) {
+  elements.reflectionSaveStatus.textContent = message;
+}
+
+function setCheckLabel(input, value) {
+  const labelText = input?.closest("label")?.querySelector("span");
+  if (labelText) {
+    labelText.textContent = value;
+  }
 }
 
 function getSelectedCategories() {
@@ -175,7 +516,7 @@ function chooseAffirmation(preferDaily = false) {
 }
 
 function categoryName(key) {
-  return appData.categories[key] || key;
+  return translateCategory(key);
 }
 
 function findAffirmationById(id) {
@@ -238,7 +579,7 @@ function updateDailyState(item, options = {}) {
 
 function setAffirmation(item, options = {}) {
   if (!item) {
-    setStatus("Affirmations are still loading.");
+    setStatus(translate("affirmationsLoading"));
     return;
   }
 
@@ -250,9 +591,9 @@ function setAffirmation(item, options = {}) {
     recordTodayHistory(item);
   }
   elements.categoryLabel.textContent = categoryName(item.category);
-  elements.affirmationText.textContent = item.text;
+  elements.affirmationText.textContent = affirmationText(item);
   elements.favoriteButton.setAttribute("aria-pressed", String(state.favorites.includes(item.id)));
-  elements.favoriteButton.textContent = state.favorites.includes(item.id) ? "Favorited" : "Favorite";
+  elements.favoriteButton.textContent = state.favorites.includes(item.id) ? translate("favorited") : translate("favorite");
   elements.reflectionContext.textContent = `${todayKey()} · ${categoryName(item.category)}`;
   loadCurrentReflection();
 
@@ -298,9 +639,10 @@ function reflectionId(item = currentAffirmation) {
 function loadCurrentReflection() {
   const id = reflectionId();
   elements.reflectionText.value = state.reflections[id]?.text || "";
+  setSaveStatus("");
 }
 
-function saveCurrentReflection() {
+function saveCurrentReflection(options = {}) {
   if (!currentAffirmation) {
     return;
   }
@@ -323,6 +665,18 @@ function saveCurrentReflection() {
   saveState();
   renderReflections();
   renderHistory();
+  if (options.announce !== false) {
+    setSaveStatus(translate("savedJustNow"));
+  }
+}
+
+function scheduleReflectionSave() {
+  if (!currentAffirmation) {
+    return;
+  }
+  setSaveStatus(translate("saving"));
+  window.clearTimeout(reflectionSaveTimer);
+  reflectionSaveTimer = window.setTimeout(() => saveCurrentReflection(), REFLECTION_SAVE_DELAY);
 }
 
 function toggleFavorite(id = currentAffirmation?.id) {
@@ -332,13 +686,13 @@ function toggleFavorite(id = currentAffirmation?.id) {
 
   if (state.favorites.includes(id)) {
     state.favorites = state.favorites.filter((favoriteId) => favoriteId !== id);
-    setStatus("Removed from favorites.");
+    setStatus(translate("removedFavorite"));
   } else {
     state.favorites = [...state.favorites, id];
     if (currentAffirmation) {
       saveFeedback("favorite", false);
     }
-    setStatus("Saved to favorites.");
+    setStatus(translate("savedFavorite"));
   }
   saveState();
   if (currentAffirmation?.id === id) {
@@ -354,10 +708,10 @@ async function copyAffirmation() {
   }
 
   try {
-    await navigator.clipboard.writeText(currentAffirmation.text);
-    setStatus("Affirmation copied.");
+    await navigator.clipboard.writeText(affirmationText(currentAffirmation));
+    setStatus(translate("copied"));
   } catch {
-    setStatus("Copy is not available in this browser.");
+    setStatus(translate("copyUnavailable"));
   }
 }
 
@@ -382,7 +736,7 @@ function saveFeedback(value, announce = true) {
   }
   saveState();
   if (announce) {
-    setStatus("Feedback saved locally.");
+    setStatus(translate("feedbackSaved"));
   }
 }
 
@@ -391,11 +745,11 @@ function renderFavorites() {
   const favorites = state.favorites
     .map((id) => appData.affirmations.find((item) => item.id === id))
     .filter(Boolean)
-    .filter((item) => !query || item.text.toLowerCase().includes(query) || categoryName(item.category).toLowerCase().includes(query));
+    .filter((item) => !query || affirmationText(item).toLowerCase().includes(query) || item.text.toLowerCase().includes(query) || categoryName(item.category).toLowerCase().includes(query));
 
   elements.favoritesList.innerHTML = "";
   if (!favorites.length) {
-    elements.favoritesList.append(emptyMessage("No favorites match this search."));
+    elements.favoritesList.append(emptyMessage(translate("noFavorites")));
     return;
   }
 
@@ -403,7 +757,7 @@ function renderFavorites() {
     const card = resultCard(item);
     const removeButton = document.createElement("button");
     removeButton.type = "button";
-    removeButton.textContent = "Remove favorite";
+    removeButton.textContent = translate("removeFavorite");
     removeButton.addEventListener("click", () => toggleFavorite(item.id));
     card.querySelector(".result-actions").append(removeButton);
     elements.favoritesList.append(card);
@@ -421,7 +775,7 @@ function renderReflections() {
 
   elements.reflectionsList.innerHTML = "";
   if (!reflections.length) {
-    elements.reflectionsList.append(emptyMessage("No saved reflections match this search."));
+    elements.reflectionsList.append(emptyMessage(translate("noReflections")));
     return;
   }
 
@@ -436,7 +790,7 @@ function renderReflections() {
     `;
     const openButton = document.createElement("button");
     openButton.type = "button";
-    openButton.textContent = "Open";
+    openButton.textContent = translate("open");
     openButton.addEventListener("click", () => {
       const affirmation = appData.affirmations.find((entry) => entry.id === item.affirmationId);
       if (affirmation) {
@@ -495,7 +849,7 @@ function renderHistory() {
   elements.historyDetail.hidden = true;
 
   if (!entries.length) {
-    elements.historyList.append(emptyMessage("No past days yet. After today passes, saved days will appear here."));
+    elements.historyList.append(emptyMessage(translate("noPastDays")));
     return;
   }
 
@@ -507,14 +861,14 @@ function renderHistory() {
     card.innerHTML = `
       <p class="category-pill">${escapeHtml(formatHistoryDate(entry.date))} - ${escapeHtml(categoryName(entry.category))}</p>
       <p>${escapeHtml(entry.affirmation)}</p>
-      <p>${favorited ? "Favorited" : "Not favorited"} - ${reflections.length ? "Reflection saved" : "No reflection yet"}</p>
+      <p>${favorited ? translate("favorited") : translate("notFavorited")} - ${reflections.length ? translate("reflectionSaved") : translate("noReflectionYet")}</p>
       <div class="result-actions"></div>
     `;
 
     const openButton = document.createElement("button");
     openButton.type = "button";
-    openButton.textContent = "Open saved day";
-    openButton.setAttribute("aria-label", `Open saved entry for ${formatHistoryDate(entry.date)}`);
+    openButton.textContent = translate("openSavedDay");
+    openButton.setAttribute("aria-label", translate("openSavedEntry", { date: formatHistoryDate(entry.date) }));
     openButton.addEventListener("click", () => openHistoryEntry(entry.date));
     card.querySelector(".result-actions").append(openButton);
     elements.historyList.append(card);
@@ -532,11 +886,11 @@ function openHistoryEntry(date) {
   elements.historyDetail.hidden = false;
   elements.historyDetailMeta.textContent = `${formatHistoryDate(entry.date)} - ${categoryName(entry.category)}`;
   elements.historyDetailAffirmation.textContent = entry.affirmation;
-  elements.historyDetailStatus.textContent = `${favorited ? "Favorited" : "Not favorited"} - ${reflections.length ? "Reflection saved" : "No reflection saved"}`;
+  elements.historyDetailStatus.textContent = `${favorited ? translate("favorited") : translate("notFavorited")} - ${reflections.length ? translate("reflectionSaved") : translate("noReflectionSaved")}`;
   elements.historyDetailReflections.innerHTML = "";
 
   if (!reflections.length) {
-    elements.historyDetailReflections.append(emptyMessage("No reflection was saved for this day."));
+    elements.historyDetailReflections.append(emptyMessage(translate("noReflectionForDay")));
   } else {
     reflections.forEach((reflection) => {
       const paragraph = document.createElement("p");
@@ -550,7 +904,7 @@ function openHistoryEntry(date) {
 
 function formatHistoryDate(date) {
   const [year, month, day] = date.split("-").map(Number);
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(currentLanguage(), {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -565,18 +919,18 @@ function renderSearch() {
 
   elements.searchResults.innerHTML = "";
   if (!query && !hasCategoryFilter) {
-    elements.searchResults.append(emptyMessage("Select one or more categories to browse affirmations, or enter a keyword to search all affirmations."));
+    elements.searchResults.append(emptyMessage(translate("searchPrompt")));
     return;
   }
 
   const categorySet = new Set(hasCategoryFilter ? selected : Object.keys(appData.categories));
   const results = appData.affirmations
     .filter((item) => categorySet.has(item.category))
-    .filter((item) => !query || item.text.toLowerCase().includes(query) || categoryName(item.category).toLowerCase().includes(query))
+    .filter((item) => !query || affirmationText(item).toLowerCase().includes(query) || item.text.toLowerCase().includes(query) || categoryName(item.category).toLowerCase().includes(query))
     .slice(0, 80);
 
   if (!results.length) {
-    elements.searchResults.append(emptyMessage("No affirmations match this search."));
+    elements.searchResults.append(emptyMessage(translate("noAffirmations")));
     return;
   }
 
@@ -584,7 +938,7 @@ function renderSearch() {
     const card = resultCard(item);
     const useButton = document.createElement("button");
     useButton.type = "button";
-    useButton.textContent = "Use this";
+    useButton.textContent = translate("useThis");
     useButton.addEventListener("click", () => {
       setAffirmation(item, { skipBreath: true });
       switchView("home");
@@ -599,7 +953,7 @@ function resultCard(item) {
   card.className = "result-card";
   card.innerHTML = `
     <p class="category-pill">${escapeHtml(categoryName(item.category))}</p>
-    <p>${escapeHtml(item.text)}</p>
+    <p>${escapeHtml(affirmationText(item))}</p>
     <div class="result-actions"></div>
   `;
   return card;
@@ -623,7 +977,8 @@ function renderCategoryControls() {
   elements.settingsCategoryFilters.innerHTML = "";
   elements.searchCategoryFilters.innerHTML = "";
 
-  categoryEntries.forEach(([key, name]) => {
+  categoryEntries.forEach(([key]) => {
+    const name = categoryName(key);
     elements.settingsCategoryFilters.append(categoryCheckbox(key, name, state.settings.categories.includes(key), "setting"));
     elements.searchCategoryFilters.append(categoryCheckbox(key, name, false, "search"));
   });
@@ -646,10 +1001,14 @@ function getCheckedValues(container) {
 
 function syncSettingsForm() {
   elements.themeSelect.value = state.settings.theme;
+  elements.languageSelect.value = currentLanguage();
   elements.textSizeRange.value = state.settings.textSize;
   elements.highContrastToggle.checked = state.settings.highContrast;
   elements.breatheToggle.checked = state.settings.breatheFirst;
   elements.readAloudToggle.checked = state.settings.readAloud;
+  elements.voiceSelect.value = state.settings.voiceURI;
+  elements.speechRateRange.value = state.settings.speechRate;
+  elements.speechRateValue.textContent = translate("speedValue", { value: Number(state.settings.speechRate).toFixed(1) });
   elements.reminderToggle.checked = state.settings.reminderEnabled;
   elements.reminderTime.value = state.settings.reminderTime;
 }
@@ -658,63 +1017,192 @@ function applySettings() {
   document.documentElement.dataset.theme = state.settings.theme;
   document.documentElement.dataset.textSize = state.settings.textSize;
   document.documentElement.dataset.contrast = state.settings.highContrast ? "high" : "normal";
+  document.documentElement.lang = currentLanguage();
   elements.speakButton.hidden = !state.settings.readAloud;
   elements.stopSpeakButton.hidden = !state.settings.readAloud;
 }
 
 function updateSetting(key, value) {
   state.settings[key] = value;
+  if (key === "language" && !SUPPORTED_LANGUAGES.includes(value)) {
+    state.settings.language = DEFAULT_LANGUAGE;
+  }
   saveState();
   applySettings();
+  syncSettingsForm();
+  if (key !== "language") {
+    return;
+  }
+
+  applyTranslations();
+  setDateAndGreeting();
+  renderCategoryControls();
+  if (currentAffirmation) {
+    setAffirmation(currentAffirmation, { skipBreath: breathGateOpen });
+  }
+  renderFavorites();
+  renderReflections();
+  renderHistory();
+  renderSearch();
+}
+
+function loadSpeechVoices() {
+  if (!("speechSynthesis" in window)) {
+    speechVoices = [];
+    renderVoiceOptions();
+    return;
+  }
+  speechVoices = window.speechSynthesis.getVoices();
+  renderVoiceOptions();
+}
+
+function renderVoiceOptions() {
+  elements.voiceSelect.innerHTML = "";
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.textContent = translate("defaultVoice");
+  elements.voiceSelect.append(defaultOption);
+
+  speechVoices.forEach((voice) => {
+    const option = document.createElement("option");
+    option.value = voice.voiceURI;
+    option.textContent = `${voice.name} (${voice.lang})`;
+    elements.voiceSelect.append(option);
+  });
+
+  if (state.settings.voiceURI && speechVoices.some((voice) => voice.voiceURI === state.settings.voiceURI)) {
+    elements.voiceSelect.value = state.settings.voiceURI;
+  } else {
+    elements.voiceSelect.value = "";
+  }
+}
+
+function applyTranslations() {
+  document.title = translate("appTitle");
+  setText(".skip-link", translate("skipLink"));
+  setText("h1", translate("appTitle"));
+  elements.themeQuickButton.setAttribute("aria-label", translate("toggleDarkMode"));
+  document.querySelector('[data-view="home"]').textContent = translate("navHome");
+  document.querySelector('[data-view="favorites"]').textContent = translate("navFavorites");
+  document.querySelector('[data-view="reflections"]').textContent = translate("navJournal");
+  document.querySelector('[data-view="history"]').textContent = translate("navHistory");
+  document.querySelector('[data-view="search"]').textContent = translate("navSearch");
+  document.querySelector('[data-view="settings"]').textContent = translate("navSettings");
+  document.querySelector(".tab-bar").setAttribute("aria-label", translate("primaryNav"));
+
+  setText("#homeHeading", translate("homeHeading"));
+  setText("#breathHeading", translate("breathHeading"));
+  setText("#breathPanel p", translate("breathPrompt"));
+  elements.revealButton.textContent = translate("revealButton");
+  document.querySelector(".primary-actions").setAttribute("aria-label", translate("actionsLabel"));
+  elements.newAffirmationButton.textContent = translate("newAffirmation");
+  elements.copyButton.textContent = translate("copy");
+  elements.speakButton.textContent = translate("play");
+  elements.stopSpeakButton.textContent = translate("stop");
+  setText("#feedbackHeading", translate("feedbackHeading"));
+  document.querySelector('[data-feedback="helped"]').textContent = translate("helped");
+  document.querySelector('[data-feedback="neutral"]').textContent = translate("neutral");
+  document.querySelector('[data-feedback="not-today"]').textContent = translate("notToday");
+  setText("#reflectionHeading", translate("reflectionHeading"));
+  setLabelText("reflectionText", translate("reflectionLabel"));
+  elements.reflectionText.placeholder = translate("reflectionPlaceholder");
+
+  setText("#favoritesHeading", translate("favoritesHeading"));
+  setText("#favoritesView .section-heading p", translate("favoritesIntro"));
+  setLabelText("favoriteSearch", translate("favoriteSearchLabel"));
+  setText("#reflectionsHeading", translate("reflectionsHeading"));
+  setText("#reflectionsView .section-heading p", translate("reflectionsIntro"));
+  setLabelText("reflectionSearch", translate("reflectionSearchLabel"));
+  setText("#historyHeading", translate("historyHeading"));
+  setText("#historyView > .section-heading p", translate("historyIntro"));
+  setText("#historyDetailHeading", translate("savedDay"));
+
+  setText("#searchHeading", translate("searchHeading"));
+  setText("#searchView .section-heading p", translate("searchIntro"));
+  setLabelText("affirmationSearch", translate("keyword"));
+  setText("#searchView legend", translate("searchCategories"));
+  setText("#settingsHeading", translate("settingsHeading"));
+  setText("#settingsView > .section-heading p", translate("settingsIntro"));
+  setLabelText("themeSelect", translate("theme"));
+  elements.themeSelect.options[0].textContent = translate("systemTheme");
+  elements.themeSelect.options[1].textContent = translate("lightMode");
+  elements.themeSelect.options[2].textContent = translate("darkMode");
+  setLabelText("languageSelect", translate("language"));
+  elements.languageSelect.options[0].textContent = translate("english");
+  elements.languageSelect.options[1].textContent = translate("spanish");
+  setLabelText("textSizeRange", translate("textSize"));
+  setCheckLabel(elements.highContrastToggle, translate("highContrast"));
+  setCheckLabel(elements.breatheToggle, translate("breatheFirst"));
+  setCheckLabel(elements.readAloudToggle, translate("readAloudControls"));
+  setLabelText("voiceSelect", translate("playbackVoice"));
+  setLabelText("speechRateRange", translate("playbackSpeed"));
+  setText("#settingsForm legend", translate("categoriesLegend"));
+  setText("#settingsForm .field-note", translate("faithOptional"));
+  setText("#reminderHeading", translate("reminderHeading"));
+  setCheckLabel(elements.reminderToggle, translate("reminderPreference"));
+  setLabelText("reminderTime", translate("preferredTime"));
+  elements.checkNotificationsButton.textContent = translate("checkNotifications");
+  setText("#clearDataHeading", translate("clearDataHeading"));
+  setText(".danger-zone p", translate("clearDataDescription"));
+  elements.clearDataButton.textContent = translate("clearDataButton");
+  syncSettingsForm();
+  renderVoiceOptions();
 }
 
 function speakAffirmation() {
   if (!currentAffirmation || !state.settings.readAloud) {
-    setStatus("Read aloud is turned off in Settings.");
+    setStatus(translate("readAloudOff"));
     return;
   }
 
   if (!("speechSynthesis" in window)) {
-    setStatus("Speech synthesis is not available in this browser.");
+    setStatus(translate("speechUnavailable"));
     return;
   }
 
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(currentAffirmation.text);
+  const utterance = new SpeechSynthesisUtterance(affirmationText(currentAffirmation));
+  const selectedVoice = speechVoices.find((voice) => voice.voiceURI === state.settings.voiceURI);
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+  }
+  utterance.lang = currentLanguage() === "es" ? "es" : "en";
+  utterance.rate = Number(state.settings.speechRate) || 1;
   window.speechSynthesis.speak(utterance);
 }
 
 function stopSpeech() {
   if ("speechSynthesis" in window) {
     window.speechSynthesis.cancel();
-    setStatus("Read aloud stopped.");
+    setStatus(translate("readAloudStopped"));
   }
 }
 
 function checkNotifications() {
   const unsupported = !("Notification" in window);
   if (unsupported) {
-    elements.notificationMessage.textContent = "Notifications are not available in this browser or device.";
+    elements.notificationMessage.textContent = translate("notificationsUnavailable");
     return;
   }
 
   if (!window.isSecureContext) {
-    elements.notificationMessage.textContent = "Notifications require a secure https address on phones. This local http test page cannot enable them.";
+    elements.notificationMessage.textContent = translate("notificationsNeedSecure");
     return;
   }
 
-  elements.notificationMessage.textContent = `Notification support is available. Current permission: ${Notification.permission}. This app stores your reminder preference, but browsers may not run daily reminders unless the app is opened or the platform supports scheduled notifications.`;
+  elements.notificationMessage.textContent = translate("notificationSupport", { permission: Notification.permission });
 }
 
 function clearLocalData() {
-  const confirmed = window.confirm("Clear all Daily Affirmation favorites, reflections, settings, and feedback from this browser?");
+  const confirmed = window.confirm(translate("clearConfirm"));
   if (!confirmed) {
     return;
   }
 
-  localStorage.removeItem(STORAGE_KEY);
+  localSaveProvider.clear();
   state = structuredClone(defaultState);
   saveState();
+  applyTranslations();
   syncSettingsForm();
   applySettings();
   renderCategoryControls();
@@ -723,7 +1211,7 @@ function clearLocalData() {
   renderReflections();
   renderHistory();
   renderSearch();
-  setStatus("Local app data cleared.");
+  setStatus(translate("dataCleared"));
 }
 
 function switchView(viewName) {
@@ -754,7 +1242,7 @@ function switchView(viewName) {
 
 function setDateAndGreeting() {
   const now = new Date();
-  elements.todayLabel.textContent = new Intl.DateTimeFormat(undefined, {
+  elements.todayLabel.textContent = new Intl.DateTimeFormat(currentLanguage(), {
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -762,8 +1250,8 @@ function setDateAndGreeting() {
   }).format(now);
 
   const hour = now.getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
-  elements.greetingText.textContent = `${greeting}. Take what helps and leave the rest.`;
+  const greeting = hour < 12 ? translate("goodMorning") : hour < 17 ? translate("goodAfternoon") : translate("goodEvening");
+  elements.greetingText.textContent = `${greeting}. ${translate("greetingSuffix")}`;
 }
 
 function registerServiceWorker() {
@@ -773,7 +1261,7 @@ function registerServiceWorker() {
 
   window.addEventListener("load", () => {
     navigator.serviceWorker.register(serviceWorkerPath).catch(() => {
-      setStatus("Offline mode was not available in this browser.");
+      setStatus(translate("offlineUnavailable"));
     });
   });
 }
@@ -789,7 +1277,7 @@ function bindEvents() {
   elements.favoriteButton.addEventListener("click", () => toggleFavorite());
   elements.speakButton.addEventListener("click", speakAffirmation);
   elements.stopSpeakButton.addEventListener("click", stopSpeech);
-  elements.reflectionText.addEventListener("input", saveCurrentReflection);
+  elements.reflectionText.addEventListener("input", scheduleReflectionSave);
   elements.favoriteSearch.addEventListener("input", renderFavorites);
   elements.reflectionSearch.addEventListener("input", renderReflections);
   elements.affirmationSearch.addEventListener("input", renderSearch);
@@ -800,10 +1288,13 @@ function bindEvents() {
   });
 
   elements.themeSelect.addEventListener("change", () => updateSetting("theme", elements.themeSelect.value));
+  elements.languageSelect.addEventListener("change", () => updateSetting("language", elements.languageSelect.value));
   elements.textSizeRange.addEventListener("input", () => updateSetting("textSize", elements.textSizeRange.value));
   elements.highContrastToggle.addEventListener("change", () => updateSetting("highContrast", elements.highContrastToggle.checked));
   elements.breatheToggle.addEventListener("change", () => updateSetting("breatheFirst", elements.breatheToggle.checked));
   elements.readAloudToggle.addEventListener("change", () => updateSetting("readAloud", elements.readAloudToggle.checked));
+  elements.voiceSelect.addEventListener("change", () => updateSetting("voiceURI", elements.voiceSelect.value));
+  elements.speechRateRange.addEventListener("input", () => updateSetting("speechRate", elements.speechRateRange.value));
   elements.reminderToggle.addEventListener("change", () => updateSetting("reminderEnabled", elements.reminderToggle.checked));
   elements.reminderTime.addEventListener("change", () => updateSetting("reminderTime", elements.reminderTime.value || "09:00"));
   elements.checkNotificationsButton.addEventListener("click", checkNotifications);
@@ -817,7 +1308,7 @@ function bindEvents() {
   elements.settingsCategoryFilters.addEventListener("change", () => {
     const selected = getCheckedValues(elements.settingsCategoryFilters);
     if (!selected.length) {
-      setStatus("Choose at least one category.");
+      setStatus(translate("chooseCategory"));
       renderCategoryControls();
       return;
     }
@@ -828,10 +1319,15 @@ function bindEvents() {
 }
 
 async function startApp() {
-  setDateAndGreeting();
   applySettings();
+  applyTranslations();
+  setDateAndGreeting();
   syncSettingsForm();
   bindEvents();
+  loadSpeechVoices();
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.addEventListener("voiceschanged", loadSpeechVoices);
+  }
 
   try {
     const response = await fetch(DATA_URL);

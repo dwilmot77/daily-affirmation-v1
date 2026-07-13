@@ -85,6 +85,7 @@
           </div>
           <label for="reflectionText">Reflection for this affirmation</label>
           <textarea id="reflectionText" rows="7" placeholder="Write anything you want to remember from today."></textarea>
+          <p class="save-status" id="reflectionSaveStatus" aria-live="polite"></p>
         </section>
       </section>
 
@@ -153,6 +154,12 @@
             <option value="dark">Dark mode</option>
           </select>
 
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+          </select>
+
           <label for="textSizeRange">Text size</label>
           <input id="textSizeRange" type="range" min="0" max="3" step="1" />
 
@@ -170,6 +177,13 @@
             <input id="readAloudToggle" type="checkbox" />
             <span>Read aloud controls</span>
           </label>
+
+          <label for="voiceSelect">Playback voice</label>
+          <select id="voiceSelect"></select>
+
+          <label for="speechRateRange">Playback speed</label>
+          <input id="speechRateRange" type="range" min="0.7" max="1.3" step="0.1" />
+          <p class="field-note" id="speechRateValue"></p>
 
           <fieldset>
             <legend>Affirmation categories</legend>
