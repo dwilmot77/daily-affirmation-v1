@@ -21,6 +21,8 @@ const translations = {
     homeHeading: "Today's affirmation",
     breathHeading: "Take one slow breath",
     breathPrompt: "When you are ready, reveal today's affirmation.",
+    breathingStarted: "Breathe in slowly, then breathe out slowly.",
+    breathingComplete: "Breath complete. Reveal when you are ready.",
     revealButton: "Reveal Today's Affirmation",
     actionsLabel: "Affirmation actions",
     newAffirmation: "New Affirmation",
@@ -138,6 +140,8 @@ const translations = {
     homeHeading: "Afirmación de hoy",
     breathHeading: "Toma una respiración lenta",
     breathPrompt: "Cuando estés listo, revela la afirmación de hoy.",
+    breathingStarted: "Inhala lentamente y luego exhala lentamente.",
+    breathingComplete: "Respiración completa. Revela cuando estés listo.",
     revealButton: "Revelar la afirmación de hoy",
     actionsLabel: "Acciones de afirmación",
     newAffirmation: "Nueva afirmación",
@@ -279,7 +283,6 @@ const defaultState = {
     language: DEFAULT_LANGUAGE,
     textSize: "0",
     highContrast: false,
-    breatheFirst: false,
     readAloud: true,
     voiceURI: "",
     speechRate: "1",
@@ -314,8 +317,9 @@ const elements = {
   affirmationText: document.querySelector("#affirmationText"),
   affirmationCard: document.querySelector("#affirmationCard"),
   breathPanel: document.querySelector("#breathPanel"),
+  breathStart: document.querySelector("#breathStart"),
+  breathExerciseStatus: document.querySelector("#breathExerciseStatus"),
   revealButton: document.querySelector("#revealButton"),
-  newAffirmationButton: document.querySelector("#newAffirmationButton"),
   copyButton: document.querySelector("#copyButton"),
   favoriteButton: document.querySelector("#favoriteButton"),
   speakButton: document.querySelector("#speakButton"),
@@ -342,7 +346,6 @@ const elements = {
   languageSelect: document.querySelector("#languageSelect"),
   textSizeRange: document.querySelector("#textSizeRange"),
   highContrastToggle: document.querySelector("#highContrastToggle"),
-  breatheToggle: document.querySelector("#breatheToggle"),
   readAloudToggle: document.querySelector("#readAloudToggle"),
   voiceSelect: document.querySelector("#voiceSelect"),
   speechRateRange: document.querySelector("#speechRateRange"),
@@ -359,6 +362,7 @@ let appData = { categories: {}, affirmations: [] };
 let state = loadState();
 let currentAffirmation = null;
 let breathGateOpen = true;
+let breathExerciseTimer = 0;
 let statusTimer = 0;
 let reflectionSaveTimer = 0;
 let speechVoices = [];
@@ -414,17 +418,20 @@ function migrateSavedState(saved) {
 
   const savedSettings = plainObject(saved.settings);
   const language = SUPPORTED_LANGUAGES.includes(savedSettings.language) ? savedSettings.language : DEFAULT_LANGUAGE;
+  const categories = Array.isArray(savedSettings.categories) ? savedSettings.categories : defaultState.settings.categories;
+  const settings = {
+    ...defaultState.settings,
+    ...savedSettings,
+    language,
+    categories,
+  };
+  delete settings.breatheFirst;
 
   return {
     ...structuredClone(defaultState),
     ...saved,
     schemaVersion: STORAGE_SCHEMA_VERSION,
-    settings: {
-      ...defaultState.settings,
-      ...savedSettings,
-      language,
-      categories: Array.isArray(savedSettings.categories) ? savedSettings.categories : defaultState.settings.categories,
-    },
+    settings,
     daily: { ...defaultState.daily, ...plainObject(saved.daily) },
     favorites: Array.isArray(saved.favorites) ? saved.favorites : [],
     reflections: plainObject(saved.reflections),
@@ -435,7 +442,11 @@ function migrateSavedState(saved) {
 }
 
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function dayNumber() {
@@ -635,7 +646,7 @@ function setAffirmation(item, options = {}) {
   elements.reflectionContext.textContent = `${todayKey()} · ${categoryName(item.category)}`;
   loadCurrentReflection();
 
-  if (state.settings.breatheFirst && !options.skipBreath && !state.daily.revealed) {
+  if (!options.skipBreath && !state.daily.revealed) {
     breathGateOpen = false;
     elements.breathPanel.hidden = false;
     elements.affirmationCard.hidden = true;
@@ -662,12 +673,29 @@ function recordTodayHistory(item) {
 
 function revealAffirmation() {
   breathGateOpen = true;
+  stopBreathingExercise();
   if (currentAffirmation) {
     updateDailyState(currentAffirmation, { revealed: true });
   }
   elements.breathPanel.hidden = true;
   elements.affirmationCard.hidden = false;
   elements.affirmationText.focus({ preventScroll: false });
+}
+
+function startBreathingExercise() {
+  window.clearTimeout(breathExerciseTimer);
+  elements.breathPanel.classList.add("is-breathing");
+  elements.breathExerciseStatus.textContent = translate("breathingStarted");
+  breathExerciseTimer = window.setTimeout(() => {
+    elements.breathPanel.classList.remove("is-breathing");
+    elements.breathExerciseStatus.textContent = translate("breathingComplete");
+  }, 8000);
+}
+
+function stopBreathingExercise() {
+  window.clearTimeout(breathExerciseTimer);
+  elements.breathPanel.classList.remove("is-breathing");
+  elements.breathExerciseStatus.textContent = "";
 }
 
 function reflectionId(item = currentAffirmation) {
@@ -1042,7 +1070,6 @@ function syncSettingsForm() {
   elements.languageSelect.value = currentLanguage();
   elements.textSizeRange.value = state.settings.textSize;
   elements.highContrastToggle.checked = state.settings.highContrast;
-  elements.breatheToggle.checked = state.settings.breatheFirst;
   elements.readAloudToggle.checked = state.settings.readAloud;
   elements.voiceSelect.value = state.settings.voiceURI;
   elements.speechRateRange.value = state.settings.speechRate;
@@ -1130,10 +1157,9 @@ function applyTranslations() {
 
   setText("#homeHeading", translate("homeHeading"));
   setText("#breathHeading", translate("breathHeading"));
-  setText("#breathPanel p", translate("breathPrompt"));
+  setText("#breathStart p", translate("breathPrompt"));
   elements.revealButton.textContent = translate("revealButton");
   document.querySelector(".primary-actions").setAttribute("aria-label", translate("actionsLabel"));
-  elements.newAffirmationButton.textContent = translate("newAffirmation");
   elements.copyButton.textContent = translate("copy");
   elements.speakButton.textContent = translate("play");
   elements.stopSpeakButton.textContent = translate("stop");
@@ -1170,7 +1196,6 @@ function applyTranslations() {
   elements.languageSelect.options[1].textContent = translate("spanish");
   setLabelText("textSizeRange", translate("textSize"));
   setCheckLabel(elements.highContrastToggle, translate("highContrast"));
-  setCheckLabel(elements.breatheToggle, translate("breatheFirst"));
   setCheckLabel(elements.readAloudToggle, translate("readAloudControls"));
   setLabelText("voiceSelect", translate("playbackVoice"));
   setLabelText("speechRateRange", translate("playbackSpeed"));
@@ -1310,7 +1335,13 @@ function bindEvents() {
   });
 
   elements.revealButton.addEventListener("click", revealAffirmation);
-  elements.newAffirmationButton.addEventListener("click", () => setAffirmation(chooseAffirmation(false)));
+  elements.breathStart.addEventListener("click", startBreathingExercise);
+  elements.breathStart.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      startBreathingExercise();
+    }
+  });
   elements.copyButton.addEventListener("click", copyAffirmation);
   elements.favoriteButton.addEventListener("click", () => toggleFavorite());
   elements.speakButton.addEventListener("click", speakAffirmation);
@@ -1329,7 +1360,6 @@ function bindEvents() {
   elements.languageSelect.addEventListener("change", () => updateSetting("language", elements.languageSelect.value));
   elements.textSizeRange.addEventListener("input", () => updateSetting("textSize", elements.textSizeRange.value));
   elements.highContrastToggle.addEventListener("change", () => updateSetting("highContrast", elements.highContrastToggle.checked));
-  elements.breatheToggle.addEventListener("change", () => updateSetting("breatheFirst", elements.breatheToggle.checked));
   elements.readAloudToggle.addEventListener("change", () => updateSetting("readAloud", elements.readAloudToggle.checked));
   elements.voiceSelect.addEventListener("change", () => updateSetting("voiceURI", elements.voiceSelect.value));
   elements.speechRateRange.addEventListener("input", () => updateSetting("speechRate", elements.speechRateRange.value));
@@ -1352,7 +1382,6 @@ function bindEvents() {
     }
     state.settings.categories = selected;
     saveState();
-    setAffirmation(chooseAffirmation(true));
   });
 }
 

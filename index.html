@@ -46,8 +46,11 @@
         </div>
 
         <section class="breath-panel" id="breathPanel" hidden aria-labelledby="breathHeading">
-          <h3 id="breathHeading">Take one slow breath</h3>
-          <p>When you are ready, reveal today’s affirmation.</p>
+          <div class="breath-start" id="breathStart" role="button" tabindex="0">
+            <h3 id="breathHeading">Take one slow breath</h3>
+            <p>When you are ready, reveal today’s affirmation.</p>
+            <p class="field-note" id="breathExerciseStatus" aria-live="polite"></p>
+          </div>
           <button type="button" id="revealButton">Reveal Today’s Affirmation</button>
         </section>
 
@@ -59,7 +62,6 @@
         </article>
 
         <div class="primary-actions" aria-label="Affirmation actions">
-          <button type="button" id="newAffirmationButton">New Affirmation</button>
           <button type="button" id="copyButton">Copy</button>
           <button type="button" id="favoriteButton" aria-pressed="false">Favorite</button>
         </div>
@@ -166,11 +168,6 @@
           <label class="check-row">
             <input id="highContrastToggle" type="checkbox" />
             <span>High contrast</span>
-          </label>
-
-          <label class="check-row">
-            <input id="breatheToggle" type="checkbox" />
-            <span>Breathe First</span>
           </label>
 
           <label class="check-row">
