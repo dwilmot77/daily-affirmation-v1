@@ -359,7 +359,7 @@ const elements = {
 };
 
 let appData = { categories: {}, affirmations: [] };
-let state = loadState();
+let state = null;
 let currentAffirmation = null;
 let breathGateOpen = true;
 let breathExerciseTimer = 0;
@@ -379,6 +379,8 @@ const localSaveProvider = {
   },
 };
 
+state = loadState();
+
 function loadState() {
   try {
     return migrateSavedState(localSaveProvider.load());
@@ -388,6 +390,7 @@ function loadState() {
 }
 
 function saveState() {
+  state = migrateSavedState(state);
   state.schemaVersion = STORAGE_SCHEMA_VERSION;
   localSaveProvider.save(state);
 }
@@ -518,7 +521,8 @@ function setCheckLabel(input, value) {
 
 function getSelectedCategories() {
   const available = Object.keys(appData.categories);
-  const selected = state.settings.categories.filter((category) => available.includes(category));
+  const savedCategories = Array.isArray(state.settings.categories) ? state.settings.categories : defaultState.settings.categories;
+  const selected = savedCategories.filter((category) => available.includes(category));
   return selected.length ? selected : ["general"];
 }
 
@@ -584,6 +588,29 @@ function ensureTodayState() {
   }
 }
 
+function saveCategorySelection(categories) {
+  const latestState = loadState();
+  state = {
+    ...latestState,
+    settings: {
+      ...latestState.settings,
+      categories: [...categories],
+    },
+  };
+  saveState();
+}
+
+function saveSettingsCategorySelection(event) {
+  event?.stopPropagation();
+  const selected = getCheckedValues(elements.settingsCategoryFilters);
+  if (!selected.length) {
+    setStatus(translate("chooseCategory"));
+    renderCategoryControls();
+    return;
+  }
+  saveCategorySelection(selected);
+}
+
 function getTodaysAffirmation() {
   ensureTodayState();
   const savedAffirmation = findAffirmationById(state.daily.affirmationId);
@@ -616,13 +643,21 @@ function getTodaysAffirmation() {
 }
 
 function updateDailyState(item, options = {}) {
-  ensureTodayState();
-  if (state.daily.affirmationId !== item.id) {
-    state.daily.affirmationId = item.id;
-    state.daily.revealed = Boolean(options.revealed);
+  const latestState = loadState();
+  const currentDaily =
+    latestState.daily.date === todayKey() ? latestState.daily : { date: todayKey(), affirmationId: "", revealed: false };
+  const nextDaily = { ...currentDaily, date: todayKey() };
+
+  if (currentDaily.affirmationId !== item.id) {
+    nextDaily.affirmationId = item.id;
+    nextDaily.revealed = typeof options.revealed === "boolean" ? options.revealed : false;
   } else if (typeof options.revealed === "boolean") {
-    state.daily.revealed = options.revealed;
+    nextDaily.revealed = options.revealed;
   }
+  state = {
+    ...latestState,
+    daily: nextDaily,
+  };
   saveState();
 }
 
@@ -634,7 +669,7 @@ function setAffirmation(item, options = {}) {
 
   currentAffirmation = item;
   if (options.persistDaily !== false) {
-    updateDailyState(item, { revealed: options.skipBreath || state.daily.revealed });
+    updateDailyState(item);
   }
   if (options.recordHistory !== false) {
     recordTodayHistory(item);
@@ -1040,12 +1075,13 @@ function escapeHtml(value) {
 
 function renderCategoryControls() {
   const categoryEntries = Object.entries(appData.categories);
+  const savedCategories = Array.isArray(state.settings.categories) ? state.settings.categories : defaultState.settings.categories;
   elements.settingsCategoryFilters.innerHTML = "";
   elements.searchCategoryFilters.innerHTML = "";
 
   categoryEntries.forEach(([key]) => {
     const name = categoryName(key);
-    elements.settingsCategoryFilters.append(categoryCheckbox(key, name, state.settings.categories.includes(key), "setting"));
+    elements.settingsCategoryFilters.append(categoryCheckbox(key, name, savedCategories.includes(key), "setting"));
     elements.searchCategoryFilters.append(categoryCheckbox(key, name, false, "search"));
   });
 }
@@ -1057,6 +1093,9 @@ function categoryCheckbox(key, name, checked, group) {
   input.value = key;
   input.checked = checked;
   input.dataset.group = group;
+  if (group === "setting") {
+    input.addEventListener("change", saveSettingsCategorySelection);
+  }
   label.append(input, document.createTextNode(name));
   return label;
 }
@@ -1374,14 +1413,7 @@ function bindEvents() {
   });
 
   elements.settingsCategoryFilters.addEventListener("change", () => {
-    const selected = getCheckedValues(elements.settingsCategoryFilters);
-    if (!selected.length) {
-      setStatus(translate("chooseCategory"));
-      renderCategoryControls();
-      return;
-    }
-    state.settings.categories = selected;
-    saveState();
+    saveSettingsCategorySelection();
   });
 }
 
