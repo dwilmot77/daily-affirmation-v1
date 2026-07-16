@@ -5,6 +5,7 @@ const serviceWorkerPath = "service-worker.js";
 const REFLECTION_SAVE_DELAY = 1200;
 const DEFAULT_LANGUAGE = "en";
 const SUPPORTED_LANGUAGES = ["en", "es"];
+const RECENT_AFFIRMATION_WINDOW = 14;
 
 const translations = {
   en: {
@@ -476,10 +477,11 @@ function todayKey() {
   return `${year}-${month}-${day}`;
 }
 
-function dayNumber() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  return Math.floor((now - start) / 86400000);
+function dayNumber(dateKeyValue = todayKey()) {
+  const [year, month, day] = dateKeyValue.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  const start = new Date(year, 0, 0);
+  return Math.floor((date - start) / 86400000);
 }
 
 function setStatus(message) {
@@ -570,7 +572,74 @@ function scoreAffirmation(item) {
   return (feedback.helped || 0) * 2 + (feedback.favorite || 0) - (feedback.notToday || 0);
 }
 
-function chooseAffirmation(preferDaily = false) {
+function gentleFeedbackWeight(item) {
+  const score = Math.max(-4, Math.min(6, scoreAffirmation(item)));
+  return Math.max(0.7, 1 + score * 0.08);
+}
+
+function seededRandom(seed) {
+  let hash = 2166136261;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash ^= seed.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return () => {
+    hash += 0x6d2b79f5;
+    let value = hash;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function weightedChoice(items, weightForItem, random) {
+  const weighted = items.map((item) => ({ item, weight: Math.max(0.01, weightForItem(item)) }));
+  const total = weighted.reduce((sum, entry) => sum + entry.weight, 0);
+  let cursor = random() * total;
+  for (const entry of weighted) {
+    cursor -= entry.weight;
+    if (cursor <= 0) {
+      return entry.item;
+    }
+  }
+  return weighted[weighted.length - 1]?.item || null;
+}
+
+function recentHistoryBefore(dateKeyValue, limit) {
+  return Object.values(state.history || {})
+    .filter((entry) => entry?.date && entry.date < dateKeyValue)
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, limit);
+}
+
+function lastTwoCategoriesMatch(dateKeyValue) {
+  const recent = recentHistoryBefore(dateKeyValue, 2);
+  if (recent.length < 2 || !recent[0].category || !recent[1].category) {
+    return "";
+  }
+  return recent[0].category === recent[1].category ? recent[0].category : "";
+}
+
+function applyDailyDiversityFilters(pool, dateKeyValue) {
+  let candidates = [...pool];
+  const recentIds = new Set(recentHistoryBefore(dateKeyValue, RECENT_AFFIRMATION_WINDOW).map((entry) => entry.affirmationId).filter(Boolean));
+  const withoutRecent = candidates.filter((item) => !recentIds.has(item.id));
+  if (withoutRecent.length) {
+    candidates = withoutRecent;
+  }
+
+  const repeatedCategory = lastTwoCategoriesMatch(dateKeyValue);
+  if (repeatedCategory) {
+    const alternatives = candidates.filter((item) => item.category !== repeatedCategory);
+    if (alternatives.length) {
+      candidates = alternatives;
+    }
+  }
+
+  return candidates;
+}
+
+function chooseAffirmation(preferDaily = false, dateKeyValue = todayKey()) {
   if (!appData.affirmations.length) {
     return null;
   }
@@ -581,25 +650,13 @@ function chooseAffirmation(preferDaily = false) {
   }
 
   if (preferDaily) {
-    const boosted = pool
-      .map((item) => ({ item, score: scoreAffirmation(item) }))
-      .sort((a, b) => b.score - a.score || a.item.id.localeCompare(b.item.id));
-    const top = boosted.slice(0, Math.min(boosted.length, 30));
-    return top[dayNumber() % top.length].item;
+    const candidates = applyDailyDiversityFilters(pool, dateKeyValue);
+    const enabledKey = getSelectedCategories().join("|");
+    const random = seededRandom(`${dateKeyValue}|${dayNumber(dateKeyValue)}|${enabledKey}`);
+    return weightedChoice(candidates, gentleFeedbackWeight, random);
   }
 
-  const weights = pool.map((item) => Math.max(1, 4 + scoreAffirmation(item)));
-  const total = weights.reduce((sum, weight) => sum + weight, 0);
-  let cursor = Math.random() * total;
-
-  for (let index = 0; index < pool.length; index += 1) {
-    cursor -= weights[index];
-    if (cursor <= 0) {
-      return pool[index];
-    }
-  }
-
-  return pool[0];
+  return weightedChoice(pool, gentleFeedbackWeight, Math.random);
 }
 
 function categoryName(key) {
@@ -667,7 +724,7 @@ function getTodaysAffirmation() {
     return todaysReflectionAffirmation;
   }
 
-  const nextAffirmation = chooseAffirmation(true);
+  const nextAffirmation = chooseAffirmation(true, todayKey());
   if (nextAffirmation) {
     state.daily.affirmationId = nextAffirmation.id;
     state.daily.revealed = false;
