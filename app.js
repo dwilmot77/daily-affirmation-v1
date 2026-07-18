@@ -81,10 +81,10 @@ const translations = {
     speedValue: "Speed: {value}x",
     categoriesLegend: "Affirmation categories",
     faithOptional: "Faith is optional and can be selected here.",
-    reminderHeading: "Daily reminder preparation",
+    reminderHeading: "Daily reminders (Coming Soon)",
     reminderPreference: "Prepare a daily reminder preference",
     preferredTime: "Preferred time",
-    checkNotifications: "Check notification support",
+    reminderComingSoon: "Daily reminders are planned for a future update. Your preferred reminder time is saved now and will be used when full reminder support becomes available.",
     clearDataHeading: "Clear local app data",
     clearDataDescription: "This removes favorites, reflections, settings, and feedback from this browser.",
     clearDataButton: "Clear local app data",
@@ -113,9 +113,6 @@ const translations = {
     readAloudOff: "Read aloud is turned off in Settings.",
     speechUnavailable: "Speech synthesis is not available in this browser.",
     readAloudStopped: "Read aloud stopped.",
-    notificationsUnavailable: "Notifications are not available in this browser or device.",
-    notificationsNeedSecure: "Notifications require a secure https address on phones. This local http test page cannot enable them.",
-    notificationSupport: "Notification support is available. Current permission: {permission}. This app stores your reminder preference, but browsers may not run daily reminders unless the app is opened or the platform supports scheduled notifications.",
     clearConfirm: "Clear all Daily Affirmation favorites, reflections, settings, and feedback from this browser?",
     dataCleared: "Local app data cleared.",
     offlineUnavailable: "Offline mode was not available in this browser.",
@@ -209,10 +206,10 @@ const translations = {
     speedValue: "Velocidad: {value}x",
     categoriesLegend: "Categorías de afirmaciones",
     faithOptional: "Fe es opcional y se puede seleccionar aquí.",
-    reminderHeading: "Preparación del recordatorio diario",
+    reminderHeading: "Recordatorios diarios (Próximamente)",
     reminderPreference: "Preparar una preferencia de recordatorio diario",
     preferredTime: "Hora preferida",
-    checkNotifications: "Verificar soporte de notificaciones",
+    reminderComingSoon: "Los recordatorios diarios están planeados para una actualización futura. Tu hora preferida se guarda ahora y se usará cuando el soporte completo de recordatorios esté disponible.",
     clearDataHeading: "Borrar datos locales de la app",
     clearDataDescription: "Esto elimina favoritas, reflexiones, ajustes y comentarios de este navegador.",
     clearDataButton: "Borrar datos locales de la app",
@@ -241,9 +238,6 @@ const translations = {
     readAloudOff: "La lectura en voz alta está desactivada en Ajustes.",
     speechUnavailable: "La síntesis de voz no está disponible en este navegador.",
     readAloudStopped: "Lectura en voz alta detenida.",
-    notificationsUnavailable: "Las notificaciones no están disponibles en este navegador o dispositivo.",
-    notificationsNeedSecure: "Las notificaciones requieren una dirección https segura en teléfonos. Esta página local http no puede activarlas.",
-    notificationSupport: "El soporte de notificaciones está disponible. Permiso actual: {permission}. Esta app guarda tu preferencia de recordatorio, pero es posible que el navegador no ejecute recordatorios diarios a menos que la app esté abierta o la plataforma admita notificaciones programadas.",
     clearConfirm: "¿Borrar todas las favoritas, reflexiones, ajustes y comentarios de Daily Affirmation de este navegador?",
     dataCleared: "Datos locales de la app borrados.",
     offlineUnavailable: "El modo sin conexión no estuvo disponible en este navegador.",
@@ -375,8 +369,7 @@ const elements = {
   speechRateValue: document.querySelector("#speechRateValue"),
   reminderToggle: document.querySelector("#reminderToggle"),
   reminderTime: document.querySelector("#reminderTime"),
-  checkNotificationsButton: document.querySelector("#checkNotificationsButton"),
-  notificationMessage: document.querySelector("#notificationMessage"),
+  reminderComingSoonMessage: document.querySelector("#reminderComingSoonMessage"),
   clearDataButton: document.querySelector("#clearDataButton"),
   themeQuickButton: document.querySelector("#themeQuickButton"),
 };
@@ -1473,7 +1466,7 @@ function applyTranslations() {
   setText("#reminderHeading", translate("reminderHeading"));
   setCheckLabel(elements.reminderToggle, translate("reminderPreference"));
   setLabelText("reminderTime", translate("preferredTime"));
-  elements.checkNotificationsButton.textContent = translate("checkNotifications");
+  elements.reminderComingSoonMessage.textContent = translate("reminderComingSoon");
   setText("#clearDataHeading", translate("clearDataHeading"));
   setText(".danger-zone p", translate("clearDataDescription"));
   elements.clearDataButton.textContent = translate("clearDataButton");
@@ -1508,21 +1501,6 @@ function stopSpeech() {
     window.speechSynthesis.cancel();
     setStatus(translate("readAloudStopped"));
   }
-}
-
-function checkNotifications() {
-  const unsupported = !("Notification" in window);
-  if (unsupported) {
-    elements.notificationMessage.textContent = translate("notificationsUnavailable");
-    return;
-  }
-
-  if (!window.isSecureContext) {
-    elements.notificationMessage.textContent = translate("notificationsNeedSecure");
-    return;
-  }
-
-  elements.notificationMessage.textContent = translate("notificationSupport", { permission: Notification.permission });
 }
 
 function clearLocalData() {
@@ -1634,7 +1612,6 @@ function bindEvents() {
   elements.speechRateRange.addEventListener("input", () => updateSetting("speechRate", elements.speechRateRange.value));
   elements.reminderToggle.addEventListener("change", () => updateSetting("reminderEnabled", elements.reminderToggle.checked));
   elements.reminderTime.addEventListener("change", () => updateSetting("reminderTime", elements.reminderTime.value || "09:00"));
-  elements.checkNotificationsButton.addEventListener("click", checkNotifications);
   elements.clearDataButton.addEventListener("click", clearLocalData);
   elements.themeQuickButton.addEventListener("click", () => {
     const nextTheme = state.settings.theme === "dark" ? "light" : "dark";
