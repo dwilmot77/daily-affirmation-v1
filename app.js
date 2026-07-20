@@ -100,6 +100,10 @@ const translations = {
     noReflections: "No saved reflections match this search.",
     open: "Open",
     noPastDays: "No past days yet. After today passes, saved days will appear here.",
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
+    calendarUnavailable: "No saved days in this month.",
+    savedDate: "Saved affirmation",
     notFavorited: "Not favorited",
     reflectionSaved: "Reflection saved",
     noReflectionYet: "No reflection yet",
@@ -225,6 +229,10 @@ const translations = {
     noReflections: "No hay reflexiones guardadas que coincidan con esta búsqueda.",
     open: "Abrir",
     noPastDays: "Aún no hay días anteriores. Después de que pase hoy, los días guardados aparecerán aquí.",
+    previousMonth: "Mes anterior",
+    nextMonth: "Mes siguiente",
+    calendarUnavailable: "No hay días guardados en este mes.",
+    savedDate: "Afirmación guardada",
     notFavorited: "No guardada",
     reflectionSaved: "Reflexión guardada",
     noReflectionYet: "Sin reflexión todavía",
@@ -347,7 +355,11 @@ const elements = {
   favoritesList: document.querySelector("#favoritesList"),
   reflectionSearch: document.querySelector("#reflectionSearch"),
   reflectionsList: document.querySelector("#reflectionsList"),
-  historyList: document.querySelector("#historyList"),
+  previousMonthButton: document.querySelector("#previousMonthButton"),
+  nextMonthButton: document.querySelector("#nextMonthButton"),
+  historyCalendarHeading: document.querySelector("#historyCalendarHeading"),
+  historyCalendarGrid: document.querySelector("#historyCalendarGrid"),
+  historyCalendarStatus: document.querySelector("#historyCalendarStatus"),
   historyDetail: document.querySelector("#historyDetail"),
   historyDetailMeta: document.querySelector("#historyDetailMeta"),
   historyDetailAffirmation: document.querySelector("#historyDetailAffirmation"),
@@ -383,6 +395,8 @@ let statusTimer = 0;
 let reflectionSaveTimer = 0;
 let feedbackConfirmationTimer = 0;
 let speechVoices = [];
+let historyCalendarMonth = new Date();
+let historyCalendarInitialized = false;
 
 const localSaveProvider = {
   load() {
@@ -1095,6 +1109,33 @@ function countTotal(counts) {
   return counts.helped + counts.neutral + counts.notToday;
 }
 
+function feedbackResponseLabel(response) {
+  if (response === "helped") {
+    return translate("helped");
+  }
+  if (response === "neutral") {
+    return translate("neutral");
+  }
+  if (response === "not-today") {
+    return translate("notToday");
+  }
+  return "";
+}
+
+function dateKeyFromParts(year, monthIndex, day) {
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function setHistoryCalendarMonth(dateKeyValue) {
+  const [year, month] = dateKeyValue.split("-").map(Number);
+  historyCalendarMonth = new Date(year, month - 1, 1);
+}
+
+function changeHistoryMonth(offset) {
+  historyCalendarMonth = new Date(historyCalendarMonth.getFullYear(), historyCalendarMonth.getMonth() + offset, 1);
+  renderHistory();
+}
+
 function renderGrowthInsights() {
   if (!elements.feedbackTotals || !elements.categoryInsights) {
     return;
@@ -1161,40 +1202,59 @@ function renderGrowthInsights() {
 }
 
 function renderHistory() {
-  if (!elements.historyList) {
+  if (!elements.historyCalendarGrid) {
     return;
   }
 
   const entries = getHistoryEntries();
+  if (!historyCalendarInitialized && entries.length) {
+    setHistoryCalendarMonth(entries[0].date);
+    historyCalendarInitialized = true;
+  }
   renderGrowthInsights();
-  elements.historyList.innerHTML = "";
+  renderHistoryCalendar(entries);
   elements.historyDetail.hidden = true;
+}
 
-  if (!entries.length) {
-    elements.historyList.append(emptyMessage(translate("noPastDays")));
-    return;
+function renderHistoryCalendar(entries) {
+  const today = todayKey();
+  const year = historyCalendarMonth.getFullYear();
+  const month = historyCalendarMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthEntries = new Map(entries.filter((entry) => entry.date.startsWith(dateKeyFromParts(year, month, 1).slice(0, 7))).map((entry) => [entry.date, entry]));
+
+  elements.historyCalendarHeading.textContent = new Intl.DateTimeFormat(currentLanguage(), { month: "long", year: "numeric" }).format(firstDay);
+  elements.previousMonthButton.setAttribute("aria-label", translate("previousMonth"));
+  elements.nextMonthButton.setAttribute("aria-label", translate("nextMonth"));
+  elements.historyCalendarGrid.innerHTML = "";
+  elements.historyCalendarStatus.textContent = monthEntries.size ? "" : translate(entries.length ? "calendarUnavailable" : "noPastDays");
+
+  for (let index = 0; index < firstDay.getDay(); index += 1) {
+    const emptyCell = document.createElement("span");
+    emptyCell.className = "calendar-day is-empty";
+    elements.historyCalendarGrid.append(emptyCell);
   }
 
-  entries.forEach((entry) => {
-    const reflections = getReflectionsForDate(entry.date);
-    const favorited = state.favorites.includes(entry.affirmationId);
-    const card = document.createElement("article");
-    card.className = "result-card";
-    card.innerHTML = `
-      <p class="category-pill">${escapeHtml(formatHistoryDate(entry.date))} - ${escapeHtml(categoryName(entry.category))}</p>
-      <p>${escapeHtml(entry.affirmation)}</p>
-      <p>${favorited ? translate("favorited") : translate("notFavorited")} - ${reflections.length ? translate("reflectionSaved") : translate("noReflectionYet")}</p>
-      <div class="result-actions"></div>
-    `;
-
-    const openButton = document.createElement("button");
-    openButton.type = "button";
-    openButton.textContent = translate("openSavedDay");
-    openButton.setAttribute("aria-label", translate("openSavedEntry", { date: formatHistoryDate(entry.date) }));
-    openButton.addEventListener("click", () => openHistoryEntry(entry.date));
-    card.querySelector(".result-actions").append(openButton);
-    elements.historyList.append(card);
-  });
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const date = dateKeyFromParts(year, month, day);
+    const entry = monthEntries.get(date);
+    const dayElement = document.createElement(entry ? "button" : "span");
+    dayElement.className = "calendar-day";
+    dayElement.textContent = String(day);
+    dayElement.classList.toggle("is-today", date === today);
+    dayElement.classList.toggle("has-entry", Boolean(entry));
+    if (entry) {
+      dayElement.type = "button";
+      dayElement.setAttribute("aria-label", `${translate("savedDate")}: ${formatHistoryDate(date)}`);
+      dayElement.addEventListener("click", () => openHistoryEntry(date));
+    } else if (date === today) {
+      dayElement.setAttribute("aria-label", formatHistoryDate(date));
+    } else {
+      dayElement.setAttribute("aria-hidden", "true");
+    }
+    elements.historyCalendarGrid.append(dayElement);
+  }
 }
 
 function openHistoryEntry(date) {
@@ -1205,10 +1265,17 @@ function openHistoryEntry(date) {
 
   const reflections = getReflectionsForDate(date);
   const favorited = state.favorites.includes(entry.affirmationId);
+  const feedbackLabel = feedbackResponseLabel(state.feedbackResponses?.[`${date}::${entry.affirmationId}`]?.response);
   elements.historyDetail.hidden = false;
   elements.historyDetailMeta.textContent = `${formatHistoryDate(entry.date)} - ${categoryName(entry.category)}`;
   elements.historyDetailAffirmation.textContent = entry.affirmation;
-  elements.historyDetailStatus.textContent = `${favorited ? translate("favorited") : translate("notFavorited")} - ${reflections.length ? translate("reflectionSaved") : translate("noReflectionSaved")}`;
+  elements.historyDetailStatus.textContent = [
+    favorited ? translate("favorited") : translate("notFavorited"),
+    reflections.length ? translate("reflectionSaved") : translate("noReflectionSaved"),
+    feedbackLabel,
+  ]
+    .filter(Boolean)
+    .join(" - ");
   elements.historyDetailReflections.innerHTML = "";
 
   if (!reflections.length) {
@@ -1598,6 +1665,8 @@ function bindEvents() {
   elements.reflectionSearch.addEventListener("input", renderReflections);
   elements.affirmationSearch.addEventListener("input", renderSearch);
   elements.searchCategoryFilters.addEventListener("change", renderSearch);
+  elements.previousMonthButton.addEventListener("click", () => changeHistoryMonth(-1));
+  elements.nextMonthButton.addEventListener("click", () => changeHistoryMonth(1));
 
   document.querySelectorAll("[data-feedback]").forEach((button) => {
     button.addEventListener("click", () => saveFeedback(button.dataset.feedback));

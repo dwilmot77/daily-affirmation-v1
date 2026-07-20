@@ -125,7 +125,24 @@
           <div class="feedback-totals" id="feedbackTotals"></div>
           <div class="result-list" id="categoryInsights"></div>
         </section>
-        <div class="result-list" id="historyList" aria-live="polite"></div>
+        <section class="history-calendar" aria-labelledby="historyCalendarHeading">
+          <div class="calendar-header">
+            <button type="button" id="previousMonthButton" aria-label="Previous month">‹</button>
+            <h3 id="historyCalendarHeading">Month Year</h3>
+            <button type="button" id="nextMonthButton" aria-label="Next month">›</button>
+          </div>
+          <div class="calendar-weekdays" aria-hidden="true">
+            <span>Sun</span>
+            <span>Mon</span>
+            <span>Tue</span>
+            <span>Wed</span>
+            <span>Thu</span>
+            <span>Fri</span>
+            <span>Sat</span>
+          </div>
+          <div class="calendar-grid" id="historyCalendarGrid" aria-live="polite"></div>
+          <p class="field-note" id="historyCalendarStatus"></p>
+        </section>
         <section class="history-detail" id="historyDetail" aria-labelledby="historyDetailHeading" tabindex="-1" hidden>
           <div class="section-heading">
             <p class="category-pill" id="historyDetailMeta"></p>
