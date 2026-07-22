@@ -1839,7 +1839,10 @@ function bindEvents() {
   elements.speechRateRange.addEventListener("input", () => updateSetting("speechRate", elements.speechRateRange.value));
   elements.reminderToggle.addEventListener("change", () => updateSetting("reminderEnabled", elements.reminderToggle.checked));
   elements.reminderTime.addEventListener("change", () => updateSetting("reminderTime", elements.reminderTime.value || "09:00"));
-  elements.sendFeedbackButton.addEventListener("click", openFeedbackEmail);
+  elements.sendFeedbackButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    openFeedbackEmail();
+  });
   elements.clearDataButton.addEventListener("click", clearLocalData);
   elements.themeQuickButton.addEventListener("click", () => {
     const nextTheme = state.settings.theme === "dark" ? "light" : "dark";

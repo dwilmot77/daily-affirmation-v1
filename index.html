@@ -253,7 +253,11 @@
         <section class="settings-card" aria-labelledby="sendFeedbackHeading">
           <h3 id="sendFeedbackHeading">Send Feedback</h3>
           <p id="sendFeedbackDescription">Share a note, idea, or bug report using your email app.</p>
-          <button type="button" id="sendFeedbackButton">💬 Send Feedback</button>
+          <a
+            class="button-link"
+            id="sendFeedbackButton"
+            href="mailto:wilmotd345@gmail.com?subject=Daily+Affirmation+Feedback&body=App+Version%3A+1.1.11%0A%0ADevice%3A+%0A%0AWhat+would+you+like+to+share%3F%0A%0ASteps+to+reproduce+%28if+reporting+a+bug%29%3A%0A%0AAdditional+comments%3A"
+          >💬 Send Feedback</a>
         </section>
 
         <section class="danger-zone" aria-labelledby="clearDataHeading">
@@ -265,6 +269,25 @@
     </main>
 
     <p class="status-message" id="statusMessage" role="status" aria-live="polite" hidden></p>
+    <script>
+      (() => {
+        const feedbackLink = document.querySelector("#sendFeedbackButton");
+        const statusMessage = document.querySelector("#statusMessage");
+        if (!feedbackLink || !statusMessage) {
+          return;
+        }
+        feedbackLink.addEventListener("click", () => {
+          const startedAt = Date.now();
+          window.setTimeout(() => {
+            if (document.visibilityState === "visible" && Date.now() - startedAt > 900) {
+              statusMessage.textContent = "No email app is available on this device.";
+              statusMessage.hidden = false;
+              statusMessage.classList.add("is-visible");
+            }
+          }, 1200);
+        });
+      })();
+    </script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -106,7 +106,26 @@ button {
   touch-action: manipulation;
 }
 
-button:hover {
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 0 16px;
+  color: var(--accent-text);
+  background: var(--accent);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 760;
+  text-align: center;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+button:hover,
+.button-link:hover {
   background: var(--accent-strong);
 }
 
@@ -574,6 +593,7 @@ button.calendar-day:hover {
 }
 
 .result-actions button,
+.settings-card > .button-link,
 .settings-card > button,
 .danger-zone button {
   width: 100%;
