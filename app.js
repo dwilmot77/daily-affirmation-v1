@@ -551,11 +551,22 @@ function setStatus(message) {
   }, 4200);
 }
 
+function feedbackDeviceInfo() {
+  const userAgent = navigator.userAgent || "";
+  const platform = navigator.platform || "";
+  const touchMac = /Mac/i.test(platform) && navigator.maxTouchPoints > 1;
+  const device = /Android/i.test(userAgent) ? "Android" : /iPhone/i.test(userAgent) ? "iPhone" : /iPad/i.test(userAgent) || touchMac ? "iPad" : /Windows/i.test(userAgent) ? "Windows" : /Mac/i.test(userAgent) ? "Mac" : "Unknown";
+  const browser = /Edg/i.test(userAgent) ? "Edge" : /CriOS|Chrome/i.test(userAgent) && !/Edg/i.test(userAgent) ? "Chrome" : /FxiOS|Firefox/i.test(userAgent) ? "Firefox" : /Safari/i.test(userAgent) ? "Safari" : "Unknown";
+  return { device, browser };
+}
+
 function feedbackMailtoUrl() {
+  const subject = "Daily Affirmation Feedback";
+  const { device, browser } = feedbackDeviceInfo();
   const body = [
     `App Version: ${APP_VERSION}`,
-    "",
-    `Device: ${navigator.userAgent || ""}`,
+    `Device: ${device}`,
+    `Browser: ${browser}`,
     "",
     "What would you like to share?",
     "",
@@ -563,11 +574,7 @@ function feedbackMailtoUrl() {
     "",
     "Additional comments:",
   ].join("\n");
-  const params = new URLSearchParams({
-    subject: "Daily Affirmation Feedback",
-    body,
-  });
-  return `mailto:wilmotd345@gmail.com?${params.toString()}`;
+  return `mailto:wilmotd345@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 function openFeedbackEmail() {
