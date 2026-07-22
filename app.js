@@ -111,6 +111,17 @@ const translations = {
     sendFeedbackDescription: "Share a note, idea, or bug report using your email app.",
     sendFeedbackButton: "💬 Send Feedback",
     noEmailApp: "No email app is available on this device.",
+    backupHeading: "Journal Backup & Restore",
+    backupDescription: "Download a private backup file or import one you saved before. No account or cloud storage is required.",
+    lastBackupNever: "Most recent backup: Never",
+    lastBackupDate: "Most recent backup: {date}",
+    exportDataButton: "Export My Data",
+    importBackupButton: "Import Backup",
+    backupExported: "Backup downloaded. Keep this file somewhere safe.",
+    backupImportReady: "Backup restored. Your saved entries were merged on this device.",
+    backupImportFailed: "This backup file could not be read.",
+    backupImportConfirm: "Import this backup and merge it with the data already saved on this device? Existing entries may be updated where the backup has the same saved item.",
+    clearDataWarning: "Removing the Home Screen app or clearing browser data may permanently erase locally stored entries. Export a backup first if you want to keep them.",
     clearDataHeading: "Clear local app data",
     clearDataDescription: "This removes favorites, reflections, settings, and feedback from this browser.",
     clearDataButton: "Clear local app data",
@@ -258,6 +269,17 @@ const translations = {
     sendFeedbackDescription: "Comparte una nota, idea o reporte de error usando tu app de correo.",
     sendFeedbackButton: "💬 Enviar comentarios",
     noEmailApp: "No hay una app de correo disponible en este dispositivo.",
+    backupHeading: "Copia y restauracion del diario",
+    backupDescription: "Descarga un archivo privado de respaldo o importa uno guardado antes. No se requiere cuenta ni almacenamiento en la nube.",
+    lastBackupNever: "Copia mas reciente: Nunca",
+    lastBackupDate: "Copia mas reciente: {date}",
+    exportDataButton: "Exportar mis datos",
+    importBackupButton: "Importar copia",
+    backupExported: "Copia descargada. Guarda este archivo en un lugar seguro.",
+    backupImportReady: "Copia restaurada. Tus entradas guardadas se combinaron en este dispositivo.",
+    backupImportFailed: "No se pudo leer este archivo de respaldo.",
+    backupImportConfirm: "Importar esta copia y combinarla con los datos guardados en este dispositivo? Las entradas existentes pueden actualizarse si la copia tiene el mismo elemento guardado.",
+    clearDataWarning: "Quitar la app de la pantalla de inicio o borrar los datos del navegador puede eliminar permanentemente las entradas locales. Exporta una copia primero si quieres conservarlas.",
     clearDataHeading: "Borrar datos locales de la app",
     clearDataDescription: "Esto elimina favoritas, reflexiones, ajustes y comentarios de este navegador.",
     clearDataButton: "Borrar datos locales de la app",
@@ -377,6 +399,9 @@ const defaultState = {
   customAffirmations: [],
   feedback: {},
   feedbackResponses: {},
+  backup: {
+    lastExportedAt: "",
+  },
 };
 
 const elements = {
@@ -437,6 +462,13 @@ const elements = {
   reminderTime: document.querySelector("#reminderTime"),
   reminderComingSoonMessage: document.querySelector("#reminderComingSoonMessage"),
   sendFeedbackButton: document.querySelector("#sendFeedbackButton"),
+  backupDescription: document.querySelector("#backupDescription"),
+  lastBackupStatus: document.querySelector("#lastBackupStatus"),
+  exportDataButton: document.querySelector("#exportDataButton"),
+  importBackupInput: document.querySelector("#importBackupInput"),
+  importBackupLabel: document.querySelector('label[for="importBackupInput"]'),
+  backupStatus: document.querySelector("#backupStatus"),
+  clearDataWarning: document.querySelector("#clearDataWarning"),
   clearDataButton: document.querySelector("#clearDataButton"),
   themeQuickButton: document.querySelector("#themeQuickButton"),
 };
@@ -692,6 +724,7 @@ function migrateSavedState(saved, recoverySources = []) {
     customAffirmations: Array.isArray(savedState.customAffirmations) ? savedState.customAffirmations : [],
     feedback: plainObject(savedState.feedback),
     feedbackResponses: plainObject(savedState.feedbackResponses),
+    backup: { ...defaultState.backup, ...plainObject(savedState.backup) },
   };
 }
 
@@ -757,6 +790,151 @@ function openFeedbackEmail() {
       setStatus(translate("noEmailApp"));
     }
   }, 1200);
+}
+
+function backupDateLabel(value) {
+  if (!value) {
+    return translate("lastBackupNever");
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return translate("lastBackupNever");
+  }
+  return translate("lastBackupDate", {
+    date: new Intl.DateTimeFormat(currentLanguage(), {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(parsed),
+  });
+}
+
+function renderBackupStatus() {
+  if (elements.lastBackupStatus) {
+    elements.lastBackupStatus.textContent = backupDateLabel(state.backup?.lastExportedAt);
+  }
+}
+
+function setBackupStatus(message) {
+  if (elements.backupStatus) {
+    elements.backupStatus.textContent = message || "";
+  }
+}
+
+function backupTimestampForFile(value) {
+  return value.replaceAll(":", "-").replaceAll(".", "-");
+}
+
+function backupPayload(exportedAt) {
+  const data = migrateSavedState(state);
+  return {
+    appName: "Daily Affirmation",
+    backupVersion: 1,
+    appVersion: APP_VERSION,
+    storageKey: STORAGE_KEY,
+    schemaVersion: STORAGE_SCHEMA_VERSION,
+    exportedAt,
+    data,
+    journals: data.reflections,
+  };
+}
+
+function exportMyData() {
+  const exportedAt = new Date().toISOString();
+  state.backup = { ...plainObject(state.backup), lastExportedAt: exportedAt };
+  saveState();
+  renderBackupStatus();
+
+  const blob = new Blob([JSON.stringify(backupPayload(exportedAt), null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `daily-affirmation-backup-${backupTimestampForFile(exportedAt)}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setBackupStatus(translate("backupExported"));
+}
+
+function backupDataFromFile(parsed) {
+  if (!isPlainObject(parsed)) {
+    return null;
+  }
+  return parsed.data || parsed.state || parsed;
+}
+
+function uniqueByValue(items) {
+  return [...new Set(items.filter(Boolean))];
+}
+
+function mergeCustomAffirmations(currentItems, importedItems) {
+  const merged = [];
+  const seen = new Set();
+  [...currentItems, ...importedItems].forEach((item) => {
+    const key = item?.id || `${item?.category || ""}:${item?.text || ""}`;
+    if (!key || seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    merged.push(item);
+  });
+  return merged;
+}
+
+function mergeImportedBackup(currentState, importedState, importedExportedAt = "") {
+  const current = migrateSavedState(currentState);
+  const imported = migrateSavedState(importedState);
+  const importedRaw = plainObject(importedState);
+  const lastExportedAt = [current.backup?.lastExportedAt, imported.backup?.lastExportedAt, importedExportedAt]
+    .filter(Boolean)
+    .sort()
+    .at(-1) || "";
+
+  return migrateSavedState({
+    ...current,
+    settings: isPlainObject(importedRaw.settings) ? { ...current.settings, ...imported.settings } : current.settings,
+    daily: isPlainObject(importedRaw.daily) ? { ...current.daily, ...imported.daily } : current.daily,
+    favorites: uniqueByValue([...current.favorites, ...imported.favorites]),
+    reflections: mergeReflectionCollections(current.reflections, imported.reflections),
+    history: normalizeHistory({ ...current.history, ...imported.history }),
+    customAffirmations: mergeCustomAffirmations(current.customAffirmations, imported.customAffirmations),
+    feedback: { ...current.feedback, ...imported.feedback },
+    feedbackResponses: { ...current.feedbackResponses, ...imported.feedbackResponses },
+    backup: { ...current.backup, ...imported.backup, lastExportedAt },
+  });
+}
+
+async function importBackupFile(event) {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+  if (!file) {
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(await file.text());
+    const backupData = backupDataFromFile(parsed);
+    if (!backupData) {
+      throw new Error("Backup data was missing.");
+    }
+    const confirmed = window.confirm(translate("backupImportConfirm"));
+    if (!confirmed) {
+      return;
+    }
+    state = mergeImportedBackup(state, backupData, parsed.exportedAt || "");
+    saveState();
+    applySettings();
+    syncSettingsForm();
+    renderCategoryControls();
+    renderBackupStatus();
+    renderFavorites();
+    renderReflections();
+    renderHistory();
+    renderSearch();
+    setBackupStatus(translate("backupImportReady"));
+  } catch {
+    setBackupStatus(translate("backupImportFailed"));
+  }
 }
 
 function currentLanguage() {
@@ -1870,6 +2048,12 @@ function applyTranslations() {
   setText("#sendFeedbackHeading", translate("sendFeedbackHeading"));
   setText("#sendFeedbackDescription", translate("sendFeedbackDescription"));
   elements.sendFeedbackButton.textContent = translate("sendFeedbackButton");
+  setText("#backupHeading", translate("backupHeading"));
+  elements.backupDescription.textContent = translate("backupDescription");
+  elements.exportDataButton.textContent = translate("exportDataButton");
+  elements.importBackupLabel.textContent = translate("importBackupButton");
+  elements.clearDataWarning.textContent = translate("clearDataWarning");
+  renderBackupStatus();
   setText("#clearDataHeading", translate("clearDataHeading"));
   setText(".danger-zone p", translate("clearDataDescription"));
   elements.clearDataButton.textContent = translate("clearDataButton");
@@ -1920,6 +2104,8 @@ function clearLocalData() {
   applySettings();
   renderCategoryControls();
   setAffirmation(chooseAffirmation(true), { skipBreath: true });
+  renderBackupStatus();
+  setBackupStatus("");
   renderFavorites();
   renderReflections();
   renderHistory();
@@ -2022,6 +2208,8 @@ function bindEvents() {
     event.preventDefault();
     openFeedbackEmail();
   });
+  elements.exportDataButton.addEventListener("click", exportMyData);
+  elements.importBackupInput.addEventListener("change", importBackupFile);
   elements.clearDataButton.addEventListener("click", clearLocalData);
   elements.themeQuickButton.addEventListener("click", () => {
     const nextTheme = state.settings.theme === "dark" ? "light" : "dark";

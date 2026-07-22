@@ -260,9 +260,20 @@
           >💬 Send Feedback</a>
         </section>
 
+        <section class="settings-card" aria-labelledby="backupHeading">
+          <h3 id="backupHeading">Journal Backup & Restore</h3>
+          <p id="backupDescription">Download a private backup file or import one you saved before. No account or cloud storage is required.</p>
+          <p class="field-note" id="lastBackupStatus">Most recent backup: Never</p>
+          <button type="button" id="exportDataButton">Export My Data</button>
+          <label class="button-link file-import-label" for="importBackupInput">Import Backup</label>
+          <input id="importBackupInput" type="file" accept="application/json,.json" hidden />
+          <p class="save-status" id="backupStatus" role="status" aria-live="polite"></p>
+        </section>
+
         <section class="danger-zone" aria-labelledby="clearDataHeading">
           <h3 id="clearDataHeading">Clear local app data</h3>
           <p>This removes favorites, reflections, settings, and feedback from this browser.</p>
+          <p class="field-note" id="clearDataWarning">Removing the Home Screen app or clearing browser data may permanently erase locally stored entries. Export a backup first if you want to keep them.</p>
           <button type="button" id="clearDataButton">Clear local app data</button>
         </section>
       </section>

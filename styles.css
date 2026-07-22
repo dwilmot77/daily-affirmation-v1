@@ -599,6 +599,12 @@ button.calendar-day:hover {
   width: 100%;
 }
 
+.file-import-label,
+#backupStatus,
+#clearDataWarning {
+  margin-top: 10px;
+}
+
 .danger-zone {
   border-color: var(--danger);
 }
