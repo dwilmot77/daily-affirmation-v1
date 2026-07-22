@@ -353,13 +353,44 @@ h3 {
   gap: 8px;
 }
 
-.feedback-totals p {
+.insight-card {
+  display: grid;
+  gap: 8px;
   margin: 0;
-  padding: 10px 12px;
+  padding: 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
+}
+
+.insight-card-featured {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.insight-card h4,
+.insight-card p {
+  margin: 0;
+}
+
+.insight-card h4 {
+  font-size: 1rem;
+}
+
+.insight-card > p:not(.insight-row) {
   font-weight: 760;
+}
+
+.insight-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.insight-row strong {
+  color: var(--text);
+  font-size: 1.05rem;
 }
 
 .check-row {

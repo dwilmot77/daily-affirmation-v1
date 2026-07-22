@@ -53,6 +53,17 @@ const translations = {
     totalHelped: "It helped",
     totalNeutral: "I'm not sure",
     totalNotToday: "Not today",
+    encouragementMessage: "🌸 Small steps matter. Every day you choose yourself is a victory. You've chosen yourself on {days}.",
+    oneDay: "1 day",
+    manyDays: "{count} days",
+    journeyAtGlance: "Journey at a Glance",
+    totalShownUpDays: "Total days you've shown up",
+    totalJournalEntries: "Total journal entries",
+    totalFavorites: "Total favorite affirmations",
+    mostHelpfulCategory: "Most Helpful Category",
+    mostHelpfulCategorySummary: "{category} affirmations have helped you most often.",
+    noHelpfulCategory: "Your most helpful category will appear after you mark an affirmation \"It helped.\"",
+    feedbackTotalsHeading: "Feedback totals",
     noGrowthInsights: "Your check-ins will appear here after you respond to a few affirmations.",
     categoryResonated: "🌿 {category} affirmations have resonated with you most often.",
     categoryNotToday: "🌱 {category} affirmations were marked \"Not today\" more frequently recently. That's okay—different messages resonate at different times.",
@@ -185,6 +196,17 @@ const translations = {
     totalHelped: "Me ayudó",
     totalNeutral: "No estoy seguro",
     totalNotToday: "Hoy no",
+    encouragementMessage: "🌸 Los pasos pequeños importan. Cada día que te eliges es una victoria. Te has elegido durante {days}.",
+    oneDay: "1 día",
+    manyDays: "{count} días",
+    journeyAtGlance: "Tu camino de un vistazo",
+    totalShownUpDays: "Total de días en que te presentaste",
+    totalJournalEntries: "Total de entradas de diario",
+    totalFavorites: "Total de afirmaciones favoritas",
+    mostHelpfulCategory: "Categoría más útil",
+    mostHelpfulCategorySummary: "Las afirmaciones de {category} te han ayudado con más frecuencia.",
+    noHelpfulCategory: "Tu categoría más útil aparecerá después de marcar una afirmación como \"Me ayudó\".",
+    feedbackTotalsHeading: "Totales de respuestas",
     noGrowthInsights: "Tus respuestas aparecerán aquí después de responder a algunas afirmaciones.",
     categoryResonated: "🌿 Las afirmaciones de {category} han resonado contigo con más frecuencia.",
     categoryNotToday: "🌱 Las afirmaciones de {category} fueron marcadas \"Hoy no\" con más frecuencia recientemente. Está bien: distintos mensajes resuenan en distintos momentos.",
@@ -1182,8 +1204,53 @@ function getGrowthInsightStats() {
   return { totals, byCategory };
 }
 
-function countTotal(counts) {
-  return counts.helped + counts.neutral + counts.notToday;
+function dayCountLabel(count) {
+  return count === 1 ? translate("oneDay") : translate("manyDays", { count });
+}
+
+function getSavedActivityDates() {
+  const dates = new Set();
+  Object.values(state.history || {}).forEach((entry) => {
+    if (entry?.date) {
+      dates.add(entry.date);
+    }
+  });
+  Object.values(state.reflections || {}).forEach((entry) => {
+    if (entry?.date) {
+      dates.add(entry.date);
+    }
+  });
+  Object.values(state.feedbackResponses || {}).forEach((entry) => {
+    if (entry?.date) {
+      dates.add(entry.date);
+    }
+  });
+  return dates;
+}
+
+function insightCard(title, rows = [], options = {}) {
+  const card = document.createElement("article");
+  card.className = options.featured ? "insight-card insight-card-featured" : "insight-card";
+  if (title) {
+    const heading = document.createElement("h4");
+    heading.textContent = title;
+    card.append(heading);
+  }
+  rows.forEach((row) => {
+    const paragraph = document.createElement("p");
+    if (typeof row === "string") {
+      paragraph.textContent = row;
+    } else {
+      paragraph.className = "insight-row";
+      const label = document.createElement("span");
+      label.textContent = row.label;
+      const value = document.createElement("strong");
+      value.textContent = String(row.value);
+      paragraph.append(label, value);
+    }
+    card.append(paragraph);
+  });
+  return card;
 }
 
 function feedbackResponseLabel(response) {
@@ -1219,63 +1286,35 @@ function renderGrowthInsights() {
   }
 
   const { totals, byCategory } = getGrowthInsightStats();
-  elements.feedbackTotals.innerHTML = "";
-  elements.categoryInsights.innerHTML = "";
-
-  [
-    [translate("totalHelped"), totals.helped],
-    [translate("totalNeutral"), totals.neutral],
-    [translate("totalNotToday"), totals.notToday],
-  ].forEach(([label, count]) => {
-    const item = document.createElement("p");
-    item.textContent = `${label}: ${count}`;
-    elements.feedbackTotals.append(item);
-  });
-
-  const categoryEntries = Object.entries(byCategory).filter(([, counts]) => countTotal(counts) > 0);
-  if (!categoryEntries.length) {
-    elements.categoryInsights.append(emptyMessage(translate("noGrowthInsights")));
-    return;
-  }
-
-  const mostHelped = categoryEntries
+  const shownUpDays = getSavedActivityDates().size;
+  const journalEntries = Object.values(state.reflections || {}).filter((entry) => entry?.date && entry?.text).length;
+  const favoriteCount = state.favorites.length;
+  const mostHelped = Object.entries(byCategory)
     .filter(([, counts]) => counts.helped > 0)
     .sort((a, b) => b[1].helped - a[1].helped || a[0].localeCompare(b[0]))[0];
-  const mostNotToday = categoryEntries
-    .filter(([, counts]) => counts.notToday > 0)
-    .sort((a, b) => b[1].notToday - a[1].notToday || a[0].localeCompare(b[0]))[0];
 
-  if (mostHelped) {
-    const card = document.createElement("article");
-    card.className = "result-card";
-    card.append(emptyMessage(translate("categoryResonated", { category: categoryName(mostHelped[0]) })));
-    elements.categoryInsights.append(card);
-  }
+  elements.feedbackTotals.innerHTML = "";
+  elements.categoryInsights.innerHTML = "";
+  elements.categoryInsights.hidden = true;
 
-  if (mostNotToday && mostNotToday[0] !== mostHelped?.[0]) {
-    const card = document.createElement("article");
-    card.className = "result-card";
-    card.append(emptyMessage(translate("categoryNotToday", { category: categoryName(mostNotToday[0]) })));
-    elements.categoryInsights.append(card);
-  }
-
-  categoryEntries
-    .sort((a, b) => countTotal(b[1]) - countTotal(a[1]) || a[0].localeCompare(b[0]))
-    .forEach(([category, counts]) => {
-      const card = document.createElement("article");
-      card.className = "result-card";
-      card.append(
-        emptyMessage(
-          translate("categorySummary", {
-            category: categoryName(category),
-            helped: counts.helped,
-            neutral: counts.neutral,
-            notToday: counts.notToday,
-          }),
-        ),
-      );
-      elements.categoryInsights.append(card);
-    });
+  elements.feedbackTotals.append(
+    insightCard("", [translate("encouragementMessage", { days: dayCountLabel(shownUpDays) })], { featured: true }),
+    insightCard(translate("journeyAtGlance"), [
+      { label: translate("totalShownUpDays"), value: shownUpDays },
+      { label: translate("totalJournalEntries"), value: journalEntries },
+      { label: translate("totalFavorites"), value: favoriteCount },
+    ]),
+    insightCard(translate("mostHelpfulCategory"), [
+      mostHelped
+        ? translate("mostHelpfulCategorySummary", { category: categoryName(mostHelped[0]) })
+        : translate("noHelpfulCategory"),
+    ]),
+    insightCard(translate("feedbackTotalsHeading"), [
+      { label: translate("totalHelped"), value: totals.helped },
+      { label: translate("totalNeutral"), value: totals.neutral },
+      { label: translate("totalNotToday"), value: totals.notToday },
+    ]),
+  );
 }
 
 function renderHistory() {
