@@ -7,6 +7,16 @@ const REFLECTION_SAVE_DELAY = 1200;
 const DEFAULT_LANGUAGE = "en";
 const SUPPORTED_LANGUAGES = ["en", "es"];
 const RECENT_AFFIRMATION_WINDOW = 14;
+const LEGACY_JOURNAL_STORAGE_KEYS = [
+  "dailyAffirmation.reflections",
+  "dailyAffirmation.journal",
+  "dailyAffirmationJournal",
+  "dailyAffirmationReflections",
+  "daily-affirmation-journal",
+  "daily-affirmation-reflections",
+  "dailyAffirmationState",
+  "daily-affirmation-state",
+];
 
 const translations = {
   en: {
@@ -449,6 +459,19 @@ const localSaveProvider = {
   load() {
     return JSON.parse(localStorage.getItem(STORAGE_KEY));
   },
+  loadLegacyJournalSources() {
+    return LEGACY_JOURNAL_STORAGE_KEYS.map((key) => {
+      const rawValue = localStorage.getItem(key);
+      if (!rawValue) {
+        return null;
+      }
+      try {
+        return { key, value: JSON.parse(rawValue) };
+      } catch {
+        return { key, value: rawValue };
+      }
+    }).filter(Boolean);
+  },
   save(nextState) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
   },
@@ -461,7 +484,7 @@ state = loadState();
 
 function loadState() {
   try {
-    return migrateSavedState(localSaveProvider.load());
+    return migrateSavedState(localSaveProvider.load(), localSaveProvider.loadLegacyJournalSources());
   } catch {
     return structuredClone(defaultState);
   }
@@ -492,12 +515,153 @@ function normalizeHistory(history) {
   );
 }
 
-function migrateSavedState(saved) {
-  if (!plainObject(saved)) {
-    return structuredClone(defaultState);
+function findDateInText(value) {
+  const match = String(value || "").match(/\b\d{4}-\d{2}-\d{2}\b/);
+  return match ? match[0] : "";
+}
+
+function dateFromTimestamp(value) {
+  if (!value) {
+    return "";
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
+}
+
+function firstString(...values) {
+  const value = values.find((item) => typeof item === "string" && item.trim());
+  return value ? value.trim() : "";
+}
+
+function reflectionCandidateFromValue(value, fallbackKey = "") {
+  const fallbackDate = findDateInText(fallbackKey);
+  if (typeof value === "string") {
+    const text = value.trim();
+    return text && fallbackDate
+      ? {
+          id: `recovered-${fallbackDate}`,
+          date: fallbackDate,
+          affirmationId: "",
+          category: "",
+          affirmation: "",
+          text,
+          updatedAt: "",
+        }
+      : null;
   }
 
-  const savedSettings = plainObject(saved.settings);
+  if (!isPlainObject(value)) {
+    return null;
+  }
+
+  const text = firstString(
+    value.text,
+    value.reflectionText,
+    value.journalText,
+    value.entry,
+    value.note,
+    value.notes,
+    value.content,
+    value.body,
+    value.reflection,
+  );
+  const date =
+    firstString(value.date, value.day, value.savedDate, value.createdDate) ||
+    fallbackDate ||
+    dateFromTimestamp(value.updatedAt || value.createdAt);
+
+  if (!text || !date) {
+    return null;
+  }
+
+  return {
+    id: firstString(value.id) || firstString(value.affirmationId) || `recovered-${date}`,
+    date,
+    affirmationId: firstString(value.affirmationId),
+    category: firstString(value.category, value.categoryId),
+    affirmation: firstString(value.affirmation, value.affirmationText, value.prompt),
+    text,
+    updatedAt: firstString(value.updatedAt, value.savedAt, value.createdAt),
+  };
+}
+
+function addReflectionEntry(target, entry) {
+  if (!entry?.date || !entry.text) {
+    return;
+  }
+  let id = entry.id || `recovered-${entry.date}`;
+  let suffix = 2;
+  while (target[id]) {
+    if (target[id].text === entry.text && target[id].date === entry.date) {
+      return;
+    }
+    id = `${entry.id || `recovered-${entry.date}`}-${suffix}`;
+    suffix += 1;
+  }
+  target[id] = { ...entry, id };
+}
+
+function normalizeReflectionCollection(collection, sourceKey = "", visited = new Set()) {
+  const reflections = {};
+
+  if (typeof collection === "string") {
+    addReflectionEntry(reflections, reflectionCandidateFromValue(collection, sourceKey));
+    return reflections;
+  }
+
+  if (!collection || typeof collection !== "object" || visited.has(collection)) {
+    return reflections;
+  }
+  visited.add(collection);
+
+  const nestedKeys = ["reflections", "journal", "journalEntries", "entries", "notes", "dailyReflections"];
+  nestedKeys.forEach((key) => {
+    if (collection[key]) {
+      Object.values(normalizeReflectionCollection(collection[key], key, visited)).forEach((entry) => {
+        addReflectionEntry(reflections, entry);
+      });
+    }
+  });
+
+  if (Array.isArray(collection)) {
+    collection.forEach((item, index) => {
+      const entry = reflectionCandidateFromValue(item, `${sourceKey}-${index}`);
+      if (entry) {
+        addReflectionEntry(reflections, entry);
+      }
+    });
+    return reflections;
+  }
+
+  Object.entries(collection).forEach(([key, value]) => {
+    if (nestedKeys.includes(key)) {
+      return;
+    }
+    const entry = reflectionCandidateFromValue(value, key);
+    if (entry) {
+      addReflectionEntry(reflections, entry);
+    }
+  });
+
+  const selfEntry = reflectionCandidateFromValue(collection, sourceKey);
+  if (selfEntry) {
+    addReflectionEntry(reflections, selfEntry);
+  }
+
+  return reflections;
+}
+
+function mergeReflectionCollections(...collections) {
+  const merged = {};
+  collections.forEach((collection) => {
+    Object.values(collection || {}).forEach((entry) => addReflectionEntry(merged, entry));
+  });
+  return merged;
+}
+
+function migrateSavedState(saved, recoverySources = []) {
+  const savedState = plainObject(saved);
+  const savedSettings = plainObject(savedState.settings);
   const language = SUPPORTED_LANGUAGES.includes(savedSettings.language) ? savedSettings.language : DEFAULT_LANGUAGE;
   const categories = Array.isArray(savedSettings.categories) ? savedSettings.categories : defaultState.settings.categories;
   const settings = {
@@ -508,18 +672,26 @@ function migrateSavedState(saved) {
   };
   delete settings.breatheFirst;
 
+  const recoveredReflections = mergeReflectionCollections(
+    normalizeReflectionCollection(savedState.reflections, "reflections"),
+    normalizeReflectionCollection(savedState.journal, "journal"),
+    normalizeReflectionCollection(savedState.journalEntries, "journalEntries"),
+    normalizeReflectionCollection(savedState.dailyReflections, "dailyReflections"),
+    ...recoverySources.map((source) => normalizeReflectionCollection(source.value, source.key)),
+  );
+
   return {
     ...structuredClone(defaultState),
-    ...saved,
+    ...savedState,
     schemaVersion: STORAGE_SCHEMA_VERSION,
     settings,
-    daily: { ...defaultState.daily, ...plainObject(saved.daily) },
-    favorites: Array.isArray(saved.favorites) ? saved.favorites : [],
-    reflections: plainObject(saved.reflections),
-    history: normalizeHistory(saved.history),
-    customAffirmations: Array.isArray(saved.customAffirmations) ? saved.customAffirmations : [],
-    feedback: plainObject(saved.feedback),
-    feedbackResponses: plainObject(saved.feedbackResponses),
+    daily: { ...defaultState.daily, ...plainObject(savedState.daily) },
+    favorites: Array.isArray(savedState.favorites) ? savedState.favorites : [],
+    reflections: recoveredReflections,
+    history: normalizeHistory(savedState.history),
+    customAffirmations: Array.isArray(savedState.customAffirmations) ? savedState.customAffirmations : [],
+    feedback: plainObject(savedState.feedback),
+    feedbackResponses: plainObject(savedState.feedbackResponses),
   };
 }
 
