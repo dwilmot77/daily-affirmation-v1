@@ -472,6 +472,7 @@ h3 {
 }
 
 .calendar-day {
+  position: relative;
   display: grid;
   place-items: center;
   min-width: 0;
@@ -499,6 +500,20 @@ button.calendar-day:hover {
 .calendar-day.has-entry {
   border-color: var(--accent);
   box-shadow: inset 0 -4px 0 var(--accent);
+}
+
+.calendar-day.has-journal {
+  border-color: var(--accent);
+}
+
+.calendar-day.has-journal::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--focus);
 }
 
 .calendar-day.is-today {

@@ -107,9 +107,31 @@
           <h2 id="reflectionsHeading">Saved reflections</h2>
           <p>Return to previous notes saved on this device.</p>
         </div>
-        <label for="reflectionSearch">Search reflections</label>
-        <input id="reflectionSearch" type="search" autocomplete="off" />
-        <div class="result-list" id="reflectionsList" aria-live="polite"></div>
+        <section class="history-calendar" aria-labelledby="journalCalendarHeading">
+          <div class="calendar-header">
+            <button type="button" id="previousJournalMonthButton" aria-label="Previous month">‹</button>
+            <h3 id="journalCalendarHeading">Month Year</h3>
+            <button type="button" id="nextJournalMonthButton" aria-label="Next month">›</button>
+          </div>
+          <div class="calendar-weekdays" aria-hidden="true">
+            <span>Sun</span>
+            <span>Mon</span>
+            <span>Tue</span>
+            <span>Wed</span>
+            <span>Thu</span>
+            <span>Fri</span>
+            <span>Sat</span>
+          </div>
+          <div class="calendar-grid" id="journalCalendarGrid" aria-live="polite"></div>
+          <p class="field-note" id="journalCalendarStatus"></p>
+        </section>
+        <section class="history-detail" id="journalDetail" aria-labelledby="journalDetailHeading" tabindex="-1" hidden>
+          <div class="section-heading">
+            <p class="category-pill" id="journalDetailMeta"></p>
+            <h3 id="journalDetailHeading">Saved reflection</h3>
+          </div>
+          <div id="journalDetailEntries"></div>
+        </section>
       </section>
 
       <section class="view" id="historyView" aria-labelledby="historyHeading" hidden>

@@ -97,7 +97,10 @@ const translations = {
     copyUnavailable: "Copy is not available in this browser.",
     noFavorites: "No favorites match this search.",
     removeFavorite: "Remove favorite",
-    noReflections: "No saved reflections match this search.",
+    noReflections: "No saved journal entries yet.",
+    journalUnavailable: "No saved journal entries in this month.",
+    journalDate: "Saved journal entry",
+    savedReflection: "Saved reflection",
     open: "Open",
     noPastDays: "No past days yet. After today passes, saved days will appear here.",
     previousMonth: "Previous month",
@@ -226,7 +229,10 @@ const translations = {
     copyUnavailable: "Copiar no está disponible en este navegador.",
     noFavorites: "No hay favoritas que coincidan con esta búsqueda.",
     removeFavorite: "Eliminar favorita",
-    noReflections: "No hay reflexiones guardadas que coincidan con esta búsqueda.",
+    noReflections: "Aún no hay entradas de diario guardadas.",
+    journalUnavailable: "No hay entradas de diario guardadas en este mes.",
+    journalDate: "Entrada de diario guardada",
+    savedReflection: "Reflexión guardada",
     open: "Abrir",
     noPastDays: "Aún no hay días anteriores. Después de que pase hoy, los días guardados aparecerán aquí.",
     previousMonth: "Mes anterior",
@@ -353,8 +359,15 @@ const elements = {
   feedbackConfirmation: document.querySelector("#feedbackConfirmation"),
   favoriteSearch: document.querySelector("#favoriteSearch"),
   favoritesList: document.querySelector("#favoritesList"),
-  reflectionSearch: document.querySelector("#reflectionSearch"),
-  reflectionsList: document.querySelector("#reflectionsList"),
+  previousJournalMonthButton: document.querySelector("#previousJournalMonthButton"),
+  nextJournalMonthButton: document.querySelector("#nextJournalMonthButton"),
+  journalCalendarHeading: document.querySelector("#journalCalendarHeading"),
+  journalCalendarGrid: document.querySelector("#journalCalendarGrid"),
+  journalCalendarStatus: document.querySelector("#journalCalendarStatus"),
+  journalDetail: document.querySelector("#journalDetail"),
+  journalDetailMeta: document.querySelector("#journalDetailMeta"),
+  journalDetailHeading: document.querySelector("#journalDetailHeading"),
+  journalDetailEntries: document.querySelector("#journalDetailEntries"),
   previousMonthButton: document.querySelector("#previousMonthButton"),
   nextMonthButton: document.querySelector("#nextMonthButton"),
   historyCalendarHeading: document.querySelector("#historyCalendarHeading"),
@@ -395,6 +408,8 @@ let statusTimer = 0;
 let reflectionSaveTimer = 0;
 let feedbackConfirmationTimer = 0;
 let speechVoices = [];
+let journalCalendarMonth = new Date();
+let journalCalendarInitialized = false;
 let historyCalendarMonth = new Date();
 let historyCalendarInitialized = false;
 
@@ -1000,50 +1015,112 @@ function renderFavorites() {
   });
 }
 
-function renderReflections() {
-  const query = elements.reflectionSearch.value.trim().toLowerCase();
-  const reflections = Object.values(state.reflections)
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-    .filter((item) => {
-      const haystack = `${item.date} ${item.affirmation} ${item.text} ${categoryName(item.category)}`.toLowerCase();
-      return !query || haystack.includes(query);
-    });
+function getReflectionEntries() {
+  return Object.values(state.reflections || {})
+    .filter((entry) => entry?.date)
+    .sort((a, b) => b.date.localeCompare(a.date) || (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+}
 
-  elements.reflectionsList.innerHTML = "";
-  if (!reflections.length) {
-    elements.reflectionsList.append(emptyMessage(translate("noReflections")));
+function renderReflections() {
+  if (!elements.journalCalendarGrid) {
     return;
   }
 
-  reflections.forEach((item) => {
-    const card = document.createElement("article");
-    card.className = "result-card";
-    card.innerHTML = `
-      <p class="category-pill">${escapeHtml(item.date)} · ${escapeHtml(categoryName(item.category))}</p>
-      <p>${escapeHtml(item.affirmation)}</p>
-      <p>${escapeHtml(item.text)}</p>
-      <div class="result-actions"></div>
-    `;
-    const openButton = document.createElement("button");
-    openButton.type = "button";
-    openButton.textContent = translate("open");
-    openButton.addEventListener("click", () => {
-      const affirmation = appData.affirmations.find((entry) => entry.id === item.affirmationId);
-      if (affirmation) {
-        setAffirmation(affirmation, { skipBreath: true, persistDaily: false, recordHistory: false });
-        elements.reflectionText.value = item.text;
-        switchView("home");
-      }
-    });
-    card.querySelector(".result-actions").append(openButton);
-    elements.reflectionsList.append(card);
-  });
+  const entries = getReflectionEntries();
+  if (!journalCalendarInitialized && entries.length) {
+    setJournalCalendarMonth(entries[0].date);
+    journalCalendarInitialized = true;
+  }
+  renderJournalCalendar(entries);
+  elements.journalDetail.hidden = true;
 }
 
 function getReflectionsForDate(date) {
   return Object.values(state.reflections)
     .filter((item) => item.date === date)
-    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    .sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+}
+
+function setJournalCalendarMonth(dateKeyValue) {
+  const [year, month] = dateKeyValue.split("-").map(Number);
+  journalCalendarMonth = new Date(year, month - 1, 1);
+}
+
+function changeJournalMonth(offset) {
+  journalCalendarMonth = new Date(journalCalendarMonth.getFullYear(), journalCalendarMonth.getMonth() + offset, 1);
+  renderReflections();
+}
+
+function renderJournalCalendar(entries) {
+  const today = todayKey();
+  const year = journalCalendarMonth.getFullYear();
+  const month = journalCalendarMonth.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthEntries = new Map();
+  entries
+    .filter((entry) => entry.date.startsWith(dateKeyFromParts(year, month, 1).slice(0, 7)))
+    .forEach((entry) => {
+      monthEntries.set(entry.date, true);
+    });
+
+  elements.journalCalendarHeading.textContent = new Intl.DateTimeFormat(currentLanguage(), { month: "long", year: "numeric" }).format(firstDay);
+  elements.previousJournalMonthButton.setAttribute("aria-label", translate("previousMonth"));
+  elements.nextJournalMonthButton.setAttribute("aria-label", translate("nextMonth"));
+  elements.journalCalendarGrid.innerHTML = "";
+  elements.journalCalendarStatus.textContent = monthEntries.size ? "" : translate(entries.length ? "journalUnavailable" : "noReflections");
+
+  for (let index = 0; index < firstDay.getDay(); index += 1) {
+    const emptyCell = document.createElement("span");
+    emptyCell.className = "calendar-day is-empty";
+    elements.journalCalendarGrid.append(emptyCell);
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const date = dateKeyFromParts(year, month, day);
+    const hasEntry = monthEntries.has(date);
+    const dayElement = document.createElement(hasEntry ? "button" : "span");
+    dayElement.className = "calendar-day";
+    dayElement.textContent = String(day);
+    dayElement.classList.toggle("is-today", date === today);
+    dayElement.classList.toggle("has-journal", hasEntry);
+    if (hasEntry) {
+      dayElement.type = "button";
+      dayElement.setAttribute("aria-label", `${translate("journalDate")}: ${formatHistoryDate(date)}`);
+      dayElement.addEventListener("click", () => openJournalEntry(date));
+    } else if (date === today) {
+      dayElement.setAttribute("aria-label", formatHistoryDate(date));
+    } else {
+      dayElement.setAttribute("aria-hidden", "true");
+    }
+    elements.journalCalendarGrid.append(dayElement);
+  }
+}
+
+function openJournalEntry(date) {
+  const reflections = getReflectionsForDate(date);
+  if (!reflections.length) {
+    return;
+  }
+
+  elements.journalDetail.hidden = false;
+  elements.journalDetailMeta.textContent = formatHistoryDate(date);
+  elements.journalDetailHeading.textContent = translate("savedReflection");
+  elements.journalDetailEntries.innerHTML = "";
+  reflections.forEach((reflection) => {
+    const card = document.createElement("article");
+    card.className = "result-card";
+    const category = document.createElement("p");
+    category.className = "category-pill";
+    category.textContent = categoryName(reflection.category);
+    const affirmation = document.createElement("p");
+    affirmation.textContent = reflection.affirmation;
+    const text = document.createElement("p");
+    text.textContent = reflection.text;
+    card.append(category, affirmation, text);
+    elements.journalDetailEntries.append(card);
+  });
+  elements.journalDetail.focus?.({ preventScroll: false });
 }
 
 function getHistoryEntries() {
@@ -1503,7 +1580,6 @@ function applyTranslations() {
   setLabelText("favoriteSearch", translate("favoriteSearchLabel"));
   setText("#reflectionsHeading", translate("reflectionsHeading"));
   setText("#reflectionsView .section-heading p", translate("reflectionsIntro"));
-  setLabelText("reflectionSearch", translate("reflectionSearchLabel"));
   setText("#historyHeading", translate("historyHeading"));
   setText("#historyView > .section-heading p", translate("historyIntro"));
   setText("#growthInsightsHeading", translate("growthInsightsHeading"));
@@ -1662,9 +1738,10 @@ function bindEvents() {
   elements.stopSpeakButton.addEventListener("click", stopSpeech);
   elements.reflectionText.addEventListener("input", scheduleReflectionSave);
   elements.favoriteSearch.addEventListener("input", renderFavorites);
-  elements.reflectionSearch.addEventListener("input", renderReflections);
   elements.affirmationSearch.addEventListener("input", renderSearch);
   elements.searchCategoryFilters.addEventListener("change", renderSearch);
+  elements.previousJournalMonthButton.addEventListener("click", () => changeJournalMonth(-1));
+  elements.nextJournalMonthButton.addEventListener("click", () => changeJournalMonth(1));
   elements.previousMonthButton.addEventListener("click", () => changeHistoryMonth(-1));
   elements.nextMonthButton.addEventListener("click", () => changeHistoryMonth(1));
 
