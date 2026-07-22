@@ -1,6 +1,7 @@
 const DATA_URL = "data/affirmations.json";
 const STORAGE_KEY = "dailyAffirmation.v1";
 const STORAGE_SCHEMA_VERSION = 3;
+const APP_VERSION = "1.1.10";
 const serviceWorkerPath = "service-worker.js";
 const REFLECTION_SAVE_DELAY = 1200;
 const DEFAULT_LANGUAGE = "en";
@@ -96,6 +97,10 @@ const translations = {
     reminderPreference: "Prepare a daily reminder preference",
     preferredTime: "Preferred time",
     reminderComingSoon: "Daily reminders are planned for a future update. Your preferred reminder time is saved now and will be used when full reminder support becomes available.",
+    sendFeedbackHeading: "Send Feedback",
+    sendFeedbackDescription: "Share a note, idea, or bug report using your email app.",
+    sendFeedbackButton: "💬 Send Feedback",
+    noEmailApp: "No email app is available on this device.",
     clearDataHeading: "Clear local app data",
     clearDataDescription: "This removes favorites, reflections, settings, and feedback from this browser.",
     clearDataButton: "Clear local app data",
@@ -239,6 +244,10 @@ const translations = {
     reminderPreference: "Preparar una preferencia de recordatorio diario",
     preferredTime: "Hora preferida",
     reminderComingSoon: "Los recordatorios diarios están planeados para una actualización futura. Tu hora preferida se guarda ahora y se usará cuando el soporte completo de recordatorios esté disponible.",
+    sendFeedbackHeading: "Enviar comentarios",
+    sendFeedbackDescription: "Comparte una nota, idea o reporte de error usando tu app de correo.",
+    sendFeedbackButton: "💬 Enviar comentarios",
+    noEmailApp: "No hay una app de correo disponible en este dispositivo.",
     clearDataHeading: "Borrar datos locales de la app",
     clearDataDescription: "Esto elimina favoritas, reflexiones, ajustes y comentarios de este navegador.",
     clearDataButton: "Borrar datos locales de la app",
@@ -417,6 +426,7 @@ const elements = {
   reminderToggle: document.querySelector("#reminderToggle"),
   reminderTime: document.querySelector("#reminderTime"),
   reminderComingSoonMessage: document.querySelector("#reminderComingSoonMessage"),
+  sendFeedbackButton: document.querySelector("#sendFeedbackButton"),
   clearDataButton: document.querySelector("#clearDataButton"),
   themeQuickButton: document.querySelector("#themeQuickButton"),
 };
@@ -539,6 +549,35 @@ function setStatus(message) {
     elements.statusMessage.hidden = true;
     elements.statusMessage.classList.remove("is-visible");
   }, 4200);
+}
+
+function feedbackMailtoUrl() {
+  const body = [
+    `App Version: ${APP_VERSION}`,
+    "",
+    `Device: ${navigator.userAgent || ""}`,
+    "",
+    "What would you like to share?",
+    "",
+    "Steps to reproduce (if reporting a bug):",
+    "",
+    "Additional comments:",
+  ].join("\n");
+  const params = new URLSearchParams({
+    subject: "Daily Affirmation Feedback",
+    body,
+  });
+  return `mailto:wilmotd345@gmail.com?${params.toString()}`;
+}
+
+function openFeedbackEmail() {
+  const startedAt = Date.now();
+  window.location.href = feedbackMailtoUrl();
+  window.setTimeout(() => {
+    if (document.visibilityState === "visible" && Date.now() - startedAt > 900) {
+      setStatus(translate("noEmailApp"));
+    }
+  }, 1200);
 }
 
 function currentLanguage() {
@@ -1649,6 +1688,9 @@ function applyTranslations() {
   setCheckLabel(elements.reminderToggle, translate("reminderPreference"));
   setLabelText("reminderTime", translate("preferredTime"));
   elements.reminderComingSoonMessage.textContent = translate("reminderComingSoon");
+  setText("#sendFeedbackHeading", translate("sendFeedbackHeading"));
+  setText("#sendFeedbackDescription", translate("sendFeedbackDescription"));
+  elements.sendFeedbackButton.textContent = translate("sendFeedbackButton");
   setText("#clearDataHeading", translate("clearDataHeading"));
   setText(".danger-zone p", translate("clearDataDescription"));
   elements.clearDataButton.textContent = translate("clearDataButton");
@@ -1797,6 +1839,7 @@ function bindEvents() {
   elements.speechRateRange.addEventListener("input", () => updateSetting("speechRate", elements.speechRateRange.value));
   elements.reminderToggle.addEventListener("change", () => updateSetting("reminderEnabled", elements.reminderToggle.checked));
   elements.reminderTime.addEventListener("change", () => updateSetting("reminderTime", elements.reminderTime.value || "09:00"));
+  elements.sendFeedbackButton.addEventListener("click", openFeedbackEmail);
   elements.clearDataButton.addEventListener("click", clearLocalData);
   elements.themeQuickButton.addEventListener("click", () => {
     const nextTheme = state.settings.theme === "dark" ? "light" : "dark";

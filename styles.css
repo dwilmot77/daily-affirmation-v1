@@ -574,6 +574,7 @@ button.calendar-day:hover {
 }
 
 .result-actions button,
+.settings-card > button,
 .danger-zone button {
   width: 100%;
 }
