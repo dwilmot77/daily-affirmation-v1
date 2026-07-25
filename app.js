@@ -402,6 +402,9 @@ const defaultState = {
   backup: {
     lastExportedAt: "",
   },
+  installation: {
+    seed: "",
+  },
 };
 
 const elements = {
@@ -516,9 +519,14 @@ state = loadState();
 
 function loadState() {
   try {
-    return migrateSavedState(localSaveProvider.load(), localSaveProvider.loadLegacyJournalSources());
+    const saved = localSaveProvider.load();
+    const migrated = migrateSavedState(saved, localSaveProvider.loadLegacyJournalSources());
+    if (!plainObject(saved).installation?.seed) {
+      localSaveProvider.save(migrated);
+    }
+    return migrated;
   } catch {
-    return structuredClone(defaultState);
+    return migrateSavedState(null);
   }
 }
 
@@ -545,6 +553,18 @@ function normalizeHistory(history) {
       return [date, { ...entry, date: entry.date || date }];
     }),
   );
+}
+
+function generateInstallationSeed() {
+  const bytes = new Uint8Array(16);
+  if (globalThis.crypto?.getRandomValues) {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let index = 0; index < bytes.length; index += 1) {
+      bytes[index] = Math.floor(Math.random() * 256);
+    }
+  }
+  return [...bytes].map((value) => value.toString(16).padStart(2, "0")).join("");
 }
 
 function findDateInText(value) {
@@ -711,6 +731,10 @@ function migrateSavedState(saved, recoverySources = []) {
     normalizeReflectionCollection(savedState.dailyReflections, "dailyReflections"),
     ...recoverySources.map((source) => normalizeReflectionCollection(source.value, source.key)),
   );
+  const savedInstallation = plainObject(savedState.installation);
+  const installationSeed = typeof savedInstallation.seed === "string" && savedInstallation.seed.trim()
+    ? savedInstallation.seed
+    : generateInstallationSeed();
 
   return {
     ...structuredClone(defaultState),
@@ -725,6 +749,7 @@ function migrateSavedState(saved, recoverySources = []) {
     feedback: plainObject(savedState.feedback),
     feedbackResponses: plainObject(savedState.feedbackResponses),
     backup: { ...defaultState.backup, ...plainObject(savedState.backup) },
+    installation: { ...defaultState.installation, ...savedInstallation, seed: installationSeed },
   };
 }
 
@@ -826,6 +851,7 @@ function backupTimestampForFile(value) {
 
 function backupPayload(exportedAt) {
   const data = migrateSavedState(state);
+  delete data.installation;
   return {
     appName: "Daily Affirmation",
     backupVersion: 1,
@@ -901,6 +927,7 @@ function mergeImportedBackup(currentState, importedState, importedExportedAt = "
     feedback: { ...current.feedback, ...imported.feedback },
     feedbackResponses: { ...current.feedbackResponses, ...imported.feedbackResponses },
     backup: { ...current.backup, ...imported.backup, lastExportedAt },
+    installation: current.installation,
   });
 }
 
@@ -1092,7 +1119,8 @@ function chooseAffirmation(preferDaily = false, dateKeyValue = todayKey()) {
   if (preferDaily) {
     const candidates = applyDailyDiversityFilters(pool, dateKeyValue);
     const enabledKey = getSelectedCategories().join("|");
-    const random = seededRandom(`${dateKeyValue}|${dayNumber(dateKeyValue)}|${enabledKey}`);
+    const installationSeed = state.installation?.seed || generateInstallationSeed();
+    const random = seededRandom(`${installationSeed}|${dateKeyValue}|${dayNumber(dateKeyValue)}|${enabledKey}`);
     return weightedChoice(candidates, gentleFeedbackWeight, random);
   }
 
