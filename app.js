@@ -1450,15 +1450,40 @@ function renderFavorites() {
     return;
   }
 
+  const favoritesByCategory = new Map();
   favorites.forEach((item) => {
-    const card = resultCard(item);
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.textContent = translate("removeFavorite");
-    removeButton.addEventListener("click", () => toggleFavorite(item.id));
-    card.querySelector(".result-actions").append(removeButton);
-    elements.favoritesList.append(card);
+    if (!favoritesByCategory.has(item.category)) {
+      favoritesByCategory.set(item.category, []);
+    }
+    favoritesByCategory.get(item.category).push(item);
   });
+
+  [...favoritesByCategory.entries()]
+    .sort(([categoryA], [categoryB]) => categoryName(categoryA).localeCompare(categoryName(categoryB)))
+    .forEach(([category, items]) => {
+      const group = document.createElement("details");
+      group.className = "favorites-group";
+      group.open = Boolean(query);
+
+      const summary = document.createElement("summary");
+      summary.className = "favorites-group-summary";
+      summary.textContent = `${categoryName(category)} (${items.length})`;
+
+      const groupList = document.createElement("div");
+      groupList.className = "favorites-group-list";
+      items.forEach((item) => {
+        const card = resultCard(item);
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.textContent = translate("removeFavorite");
+        removeButton.addEventListener("click", () => toggleFavorite(item.id));
+        card.querySelector(".result-actions").append(removeButton);
+        groupList.append(card);
+      });
+
+      group.append(summary, groupList);
+      elements.favoritesList.append(group);
+    });
 }
 
 function getReflectionEntries() {
