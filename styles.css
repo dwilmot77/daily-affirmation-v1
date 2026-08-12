@@ -164,6 +164,18 @@ fieldset {
   border-radius: 8px;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .skip-link {
   position: fixed;
   top: calc(10px + var(--safe-top));
@@ -445,6 +457,71 @@ h3 {
 .checkbox-grid input {
   width: 24px;
   min-height: 24px;
+}
+
+.settings-categories {
+  margin: 22px 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.settings-categories-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  gap: 4px 12px;
+  align-items: center;
+  min-height: 56px;
+  padding: 14px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.settings-categories-summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-categories-title,
+.settings-categories-count {
+  min-width: 0;
+}
+
+.settings-categories-title {
+  color: var(--text);
+  font-weight: 850;
+}
+
+.settings-categories-count {
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 720;
+}
+
+.settings-categories-chevron {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  justify-self: end;
+}
+
+.settings-categories[open] .settings-categories-chevron {
+  transform: rotate(-135deg);
+}
+
+.settings-categories fieldset {
+  margin: 0;
+  padding: 0 14px 14px;
+  border: 0;
+  border-radius: 0;
+}
+
+.settings-categories .field-note {
+  margin-bottom: 12px;
 }
 
 .section-heading {

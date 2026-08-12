@@ -105,6 +105,8 @@ const translations = {
     playbackSpeed: "Playback speed",
     speedValue: "Speed: {value}x",
     categoriesLegend: "Affirmation categories",
+    categoryCountOne: "1 category selected",
+    categoryCountMany: "{count} categories selected",
     faithOptional: "Faith is optional and can be selected here.",
     reminderHeading: "Daily reminders (Coming Soon)",
     reminderPreference: "Prepare a daily reminder preference",
@@ -297,6 +299,8 @@ const translations = {
     playbackSpeed: "Velocidad de reproducción",
     speedValue: "Velocidad: {value}x",
     categoriesLegend: "Categorías de afirmaciones",
+    categoryCountOne: "1 categoría seleccionada",
+    categoryCountMany: "{count} categorías seleccionadas",
     faithOptional: "Fe es opcional y se puede seleccionar aquí.",
     reminderHeading: "Recordatorios diarios (Próximamente)",
     reminderPreference: "Preparar una preferencia de recordatorio diario",
@@ -526,6 +530,11 @@ const elements = {
   searchResults: document.querySelector("#searchResults"),
   searchCategoryFilters: document.querySelector("#searchCategoryFilters"),
   settingsCategoryFilters: document.querySelector("#settingsCategoryFilters"),
+  settingsCategoriesAccordion: document.querySelector("#settingsCategoriesAccordion"),
+  settingsCategoriesSummary: document.querySelector(".settings-categories-summary"),
+  settingsCategoriesTitle: document.querySelector("#settingsCategoriesTitle"),
+  settingsCategoriesCount: document.querySelector("#settingsCategoriesCount"),
+  settingsCategoriesNote: document.querySelector("#settingsCategoriesNote"),
   themeSelect: document.querySelector("#themeSelect"),
   languageSelect: document.querySelector("#languageSelect"),
   textSizeRange: document.querySelector("#textSizeRange"),
@@ -1695,6 +1704,7 @@ function saveCategorySelection(categories) {
     },
   };
   saveState();
+  renderSettingsCategorySummary();
 }
 
 function saveSettingsCategorySelection(event) {
@@ -1706,6 +1716,43 @@ function saveSettingsCategorySelection(event) {
     return;
   }
   saveCategorySelection(selected);
+}
+
+function settingsCategoryCountLabel(count) {
+  return count === 1
+    ? translate("categoryCountOne")
+    : translate("categoryCountMany", { count: String(count) });
+}
+
+function selectedSettingsCategoryCount() {
+  const checkedInputs = elements.settingsCategoryFilters?.querySelectorAll("input:checked") || [];
+  if (checkedInputs.length) {
+    return checkedInputs.length;
+  }
+  return Array.isArray(state.settings.categories) ? state.settings.categories.length : defaultState.settings.categories.length;
+}
+
+function syncSettingsCategoryAccordionState() {
+  if (elements.settingsCategoriesSummary && elements.settingsCategoriesAccordion) {
+    elements.settingsCategoriesSummary.setAttribute("aria-expanded", String(elements.settingsCategoriesAccordion.open));
+  }
+}
+
+function renderSettingsCategorySummary() {
+  if (elements.settingsCategoriesTitle) {
+    elements.settingsCategoriesTitle.textContent = translate("categoriesLegend");
+  }
+  if (elements.settingsCategoriesCount) {
+    elements.settingsCategoriesCount.textContent = settingsCategoryCountLabel(selectedSettingsCategoryCount());
+  }
+  syncSettingsCategoryAccordionState();
+}
+
+function collapseSettingsCategories() {
+  if (elements.settingsCategoriesAccordion) {
+    elements.settingsCategoriesAccordion.open = false;
+  }
+  syncSettingsCategoryAccordionState();
 }
 
 function getTodaysAffirmation() {
@@ -2475,6 +2522,7 @@ function renderCategoryControls() {
     elements.settingsCategoryFilters.append(categoryCheckbox(key, name, savedCategories.includes(key), "setting"));
     elements.searchCategoryFilters.append(categoryCheckbox(key, name, false, "search"));
   });
+  renderSettingsCategorySummary();
 }
 
 function categoryCheckbox(key, name, checked, group) {
@@ -2630,8 +2678,9 @@ function applyTranslations() {
   setCheckLabel(elements.readAloudToggle, translate("readAloudControls"));
   setLabelText("voiceSelect", translate("playbackVoice"));
   setLabelText("speechRateRange", translate("playbackSpeed"));
-  setText("#settingsForm legend", translate("categoriesLegend"));
-  setText("#settingsForm .field-note", translate("faithOptional"));
+  setText("#settingsCategoriesAccordion legend", translate("categoriesLegend"));
+  elements.settingsCategoriesNote.textContent = translate("faithOptional");
+  renderSettingsCategorySummary();
   setText("#reminderHeading", translate("reminderHeading"));
   setCheckLabel(elements.reminderToggle, translate("reminderPreference"));
   setLabelText("reminderTime", translate("preferredTime"));
@@ -2741,6 +2790,9 @@ function switchView(viewName) {
   if (viewName === "search") {
     renderSearch();
   }
+  if (viewName === "settings") {
+    collapseSettingsCategories();
+  }
 }
 
 function setDateAndGreeting() {
@@ -2831,6 +2883,7 @@ function bindEvents() {
   elements.settingsCategoryFilters.addEventListener("change", () => {
     saveSettingsCategorySelection();
   });
+  elements.settingsCategoriesAccordion.addEventListener("toggle", syncSettingsCategoryAccordionState);
 }
 
 async function startApp() {

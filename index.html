@@ -196,60 +196,6 @@
           <p>Preferences stay on this device.</p>
         </div>
 
-        <form id="settingsForm">
-          <label for="themeSelect">Theme</label>
-          <select id="themeSelect">
-            <option value="system">System theme</option>
-            <option value="light">Light mode</option>
-            <option value="dark">Dark mode</option>
-          </select>
-
-          <label for="languageSelect">Language</label>
-          <select id="languageSelect">
-            <option value="en">English</option>
-            <option value="es">Spanish</option>
-          </select>
-
-          <label for="textSizeRange">Text size</label>
-          <input id="textSizeRange" type="range" min="0" max="3" step="1" />
-
-          <label class="check-row">
-            <input id="highContrastToggle" type="checkbox" />
-            <span>High contrast</span>
-          </label>
-
-          <label class="check-row">
-            <input id="readAloudToggle" type="checkbox" />
-            <span>Read aloud controls</span>
-          </label>
-
-          <label for="voiceSelect">Playback voice</label>
-          <select id="voiceSelect"></select>
-
-          <label for="speechRateRange">Playback speed</label>
-          <input id="speechRateRange" type="range" min="0.7" max="1.3" step="0.1" />
-          <p class="field-note" id="speechRateValue"></p>
-
-          <fieldset>
-            <legend>Affirmation categories</legend>
-            <p class="field-note">Faith is optional and can be selected here.</p>
-            <div class="checkbox-grid" id="settingsCategoryFilters"></div>
-          </fieldset>
-        </form>
-
-        <section class="settings-card" aria-labelledby="reminderHeading">
-          <h3 id="reminderHeading">Daily reminders (Coming Soon)</h3>
-          <label class="check-row">
-            <input id="reminderToggle" type="checkbox" />
-            <span>Prepare a daily reminder preference</span>
-          </label>
-          <label for="reminderTime">Preferred time</label>
-          <input id="reminderTime" type="time" />
-          <p class="field-note" id="reminderComingSoonMessage">
-            Daily reminders are planned for a future update. Your preferred reminder time is saved now and will be used when full reminder support becomes available.
-          </p>
-        </section>
-
         <section class="settings-card" aria-labelledby="accountHeading">
           <h3 id="accountHeading">Account / Cloud Backup</h3>
           <p id="accountDescription">Your data is currently stored only on this device. Cloud backup setup is in progress.</p>
@@ -285,16 +231,6 @@
           <p class="save-status" id="cloudBackupStatus" role="status" aria-live="polite"></p>
         </section>
 
-        <section class="settings-card" aria-labelledby="sendFeedbackHeading">
-          <h3 id="sendFeedbackHeading">Send Feedback</h3>
-          <p id="sendFeedbackDescription">Share a note, idea, or bug report using your email app.</p>
-          <a
-            class="button-link"
-            id="sendFeedbackButton"
-            href="mailto:wilmotd345@gmail.com?subject=Daily%20Affirmation%20Feedback&body=App%20Version%3A%201.1.11%0ADevice%3A%20%0ABrowser%3A%20%0A%0AWhat%20would%20you%20like%20to%20share%3F%0A%0ASteps%20to%20reproduce%20(if%20reporting%20a%20bug)%3A%0A%0AAdditional%20comments%3A"
-          >💬 Send Feedback</a>
-        </section>
-
         <section class="settings-card" aria-labelledby="backupHeading">
           <h3 id="backupHeading">Journal Backup & Restore</h3>
           <p id="backupDescription">Download a private backup file or import one you saved before. No account or cloud storage is required.</p>
@@ -303,6 +239,77 @@
           <label class="button-link file-import-label" for="importBackupInput">Import Backup</label>
           <input id="importBackupInput" type="file" accept="application/json,.json" hidden />
           <p class="save-status" id="backupStatus" role="status" aria-live="polite"></p>
+        </section>
+
+        <form id="settingsForm">
+          <label for="themeSelect">Theme</label>
+          <select id="themeSelect">
+            <option value="system">System theme</option>
+            <option value="light">Light mode</option>
+            <option value="dark">Dark mode</option>
+          </select>
+
+          <label for="languageSelect">Language</label>
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+          </select>
+
+          <label for="textSizeRange">Text size</label>
+          <input id="textSizeRange" type="range" min="0" max="3" step="1" />
+
+          <label class="check-row">
+            <input id="highContrastToggle" type="checkbox" />
+            <span>High contrast</span>
+          </label>
+
+          <label class="check-row">
+            <input id="readAloudToggle" type="checkbox" />
+            <span>Read aloud controls</span>
+          </label>
+
+          <label for="voiceSelect">Playback voice</label>
+          <select id="voiceSelect"></select>
+
+          <label for="speechRateRange">Playback speed</label>
+          <input id="speechRateRange" type="range" min="0.7" max="1.3" step="0.1" />
+          <p class="field-note" id="speechRateValue"></p>
+
+          <details class="settings-categories" id="settingsCategoriesAccordion">
+            <summary class="settings-categories-summary">
+              <span class="settings-categories-title" id="settingsCategoriesTitle">Affirmation categories</span>
+              <span class="settings-categories-count" id="settingsCategoriesCount">0 categories selected</span>
+              <span class="settings-categories-chevron" aria-hidden="true"></span>
+            </summary>
+            <fieldset>
+              <legend class="visually-hidden">Affirmation categories</legend>
+              <p class="field-note" id="settingsCategoriesNote">Faith is optional and can be selected here.</p>
+              <div class="checkbox-grid" id="settingsCategoryFilters"></div>
+            </fieldset>
+          </details>
+        </form>
+
+        <section class="settings-card" aria-labelledby="reminderHeading">
+          <h3 id="reminderHeading">Daily reminders (Coming Soon)</h3>
+          <label class="check-row">
+            <input id="reminderToggle" type="checkbox" />
+            <span>Prepare a daily reminder preference</span>
+          </label>
+          <label for="reminderTime">Preferred time</label>
+          <input id="reminderTime" type="time" />
+          <p class="field-note" id="reminderComingSoonMessage">
+            Daily reminders are planned for a future update. Your preferred reminder time is saved now and will be used when full reminder support becomes available.
+          </p>
+        </section>
+
+        <section class="settings-card" aria-labelledby="sendFeedbackHeading">
+          <h3 id="sendFeedbackHeading">Send Feedback</h3>
+          <p id="sendFeedbackDescription">Share a note, idea, or bug report using your email app.</p>
+          <a
+            class="button-link"
+            id="sendFeedbackButton"
+            href="mailto:wilmotd345@gmail.com?subject=Daily%20Affirmation%20Feedback&body=App%20Version%3A%201.1.11%0ADevice%3A%20%0ABrowser%3A%20%0A%0AWhat%20would%20you%20like%20to%20share%3F%0A%0ASteps%20to%20reproduce%20(if%20reporting%20a%20bug)%3A%0A%0AAdditional%20comments%3A"
+          >💬 Send Feedback</a>
         </section>
 
         <section class="danger-zone" aria-labelledby="clearDataHeading">
