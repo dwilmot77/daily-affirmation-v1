@@ -613,7 +613,16 @@ button.calendar-day:hover {
   gap: 8px;
 }
 
+.account-form,
+.account-actions,
+#accountSignedInPanel {
+  display: grid;
+  gap: 10px;
+}
+
 .result-actions button,
+.account-actions button,
+#signOutButton,
 .settings-card > .button-link,
 .settings-card > button,
 .danger-zone button {

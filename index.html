@@ -250,6 +250,36 @@
           </p>
         </section>
 
+        <section class="settings-card" aria-labelledby="accountHeading">
+          <h3 id="accountHeading">Account / Cloud Backup</h3>
+          <p id="accountDescription">Your data is currently stored only on this device. Cloud backup setup is in progress.</p>
+
+          <div id="accountSignedOutPanel">
+            <form class="account-form" id="accountForm">
+              <label for="accountEmail">Email</label>
+              <input id="accountEmail" type="email" autocomplete="email" inputmode="email" />
+              <label for="accountPassword">Password</label>
+              <input id="accountPassword" type="password" autocomplete="current-password" minlength="6" />
+              <label for="accountNewPassword" id="accountNewPasswordLabel" hidden>New password</label>
+              <input id="accountNewPassword" type="password" autocomplete="new-password" minlength="6" hidden />
+              <div class="account-actions" aria-label="Account actions">
+                <button type="button" id="createAccountButton">Create account</button>
+                <button type="button" id="signInButton">Sign in</button>
+                <button type="button" id="forgotPasswordButton">Forgot password</button>
+                <button type="button" id="updatePasswordButton" hidden>Update password</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="accountSignedInPanel" hidden>
+            <p id="signedInEmail">Signed in as: </p>
+            <button type="button" id="signOutButton">Sign out</button>
+          </div>
+
+          <p class="field-note" id="accountNote">Signing in does not upload or sync your saved data yet.</p>
+          <p class="save-status" id="authStatus" role="status" aria-live="polite"></p>
+        </section>
+
         <section class="settings-card" aria-labelledby="sendFeedbackHeading">
           <h3 id="sendFeedbackHeading">Send Feedback</h3>
           <p id="sendFeedbackDescription">Share a note, idea, or bug report using your email app.</p>
@@ -299,6 +329,7 @@
         });
       })();
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

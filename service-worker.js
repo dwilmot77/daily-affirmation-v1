@@ -1,4 +1,4 @@
-const CACHE_NAME = "daily-affirmation-v1.1.16";
+const CACHE_NAME = "daily-affirmation-v1.1.17";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -42,6 +42,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin) {
+    return;
+  }
+
+  if (requestUrl.search) {
+    event.respondWith(fetch(event.request).catch(() => caches.match("./")));
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -49,8 +59,10 @@ self.addEventListener("fetch", (event) => {
       }
 
       return fetch(event.request).then((networkResponse) => {
-        const responseCopy = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseCopy));
+        if (networkResponse.ok) {
+          const responseCopy = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseCopy));
+        }
         return networkResponse;
       });
     }),

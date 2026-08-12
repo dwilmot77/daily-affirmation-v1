@@ -2,6 +2,9 @@ const DATA_URL = "data/affirmations.json";
 const STORAGE_KEY = "dailyAffirmation.v1";
 const STORAGE_SCHEMA_VERSION = 3;
 const APP_VERSION = "1.1.11";
+const SUPABASE_URL = "https://bhqeofgrkfgvatiktimo.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_KWQG-quxGGASxoi3m2Gc8A_0oefaDlx";
+const AUTH_REDIRECT_URL = "https://dwilmot77.github.io/daily-affirmation-v1/";
 const serviceWorkerPath = "service-worker.js";
 const REFLECTION_SAVE_DELAY = 1200;
 const DEFAULT_LANGUAGE = "en";
@@ -107,6 +110,29 @@ const translations = {
     reminderPreference: "Prepare a daily reminder preference",
     preferredTime: "Preferred time",
     reminderComingSoon: "Daily reminders are planned for a future update. Your preferred reminder time is saved now and will be used when full reminder support becomes available.",
+    accountHeading: "Account / Cloud Backup",
+    accountDescriptionSignedOut: "Your data is currently stored only on this device. Cloud backup setup is in progress.",
+    accountDescriptionSignedIn: "You are signed in. Cloud backup setup is in progress, but this app is not syncing saved data yet.",
+    accountEmail: "Email",
+    accountPassword: "Password",
+    accountNewPassword: "New password",
+    accountActions: "Account actions",
+    createAccount: "Create account",
+    signIn: "Sign in",
+    forgotPassword: "Forgot password",
+    updatePassword: "Update password",
+    signOut: "Sign out",
+    signedInAs: "Signed in as: {email}",
+    accountNote: "Signing in does not upload or sync your saved data yet.",
+    authUnavailable: "Account features need an internet connection. The local app still works on this device.",
+    authEmailPasswordRequired: "Enter an email and password.",
+    authEmailRequired: "Enter your email address.",
+    authNewPasswordRequired: "Enter a new password.",
+    authCheckEmail: "Check your email to continue.",
+    authSignedIn: "Signed in.",
+    authSignedOut: "Signed out.",
+    authPasswordUpdated: "Password updated.",
+    authSessionRestored: "Session restored.",
     sendFeedbackHeading: "Send Feedback",
     sendFeedbackDescription: "Share a note, idea, or bug report using your email app.",
     sendFeedbackButton: "💬 Send Feedback",
@@ -265,6 +291,29 @@ const translations = {
     reminderPreference: "Preparar una preferencia de recordatorio diario",
     preferredTime: "Hora preferida",
     reminderComingSoon: "Los recordatorios diarios están planeados para una actualización futura. Tu hora preferida se guarda ahora y se usará cuando el soporte completo de recordatorios esté disponible.",
+    accountHeading: "Cuenta / copia en la nube",
+    accountDescriptionSignedOut: "Tus datos se guardan actualmente solo en este dispositivo. La copia en la nube esta en preparacion.",
+    accountDescriptionSignedIn: "Has iniciado sesion. La copia en la nube esta en preparacion, pero esta app aun no sincroniza datos guardados.",
+    accountEmail: "Correo electronico",
+    accountPassword: "Contrasena",
+    accountNewPassword: "Nueva contrasena",
+    accountActions: "Acciones de cuenta",
+    createAccount: "Crear cuenta",
+    signIn: "Iniciar sesion",
+    forgotPassword: "Olvide mi contrasena",
+    updatePassword: "Actualizar contrasena",
+    signOut: "Cerrar sesion",
+    signedInAs: "Sesion iniciada como: {email}",
+    accountNote: "Iniciar sesion no sube ni sincroniza tus datos guardados todavia.",
+    authUnavailable: "Las funciones de cuenta necesitan conexion a internet. La app local aun funciona en este dispositivo.",
+    authEmailPasswordRequired: "Escribe un correo y una contrasena.",
+    authEmailRequired: "Escribe tu correo electronico.",
+    authNewPasswordRequired: "Escribe una nueva contrasena.",
+    authCheckEmail: "Revisa tu correo para continuar.",
+    authSignedIn: "Sesion iniciada.",
+    authSignedOut: "Sesion cerrada.",
+    authPasswordUpdated: "Contrasena actualizada.",
+    authSessionRestored: "Sesion restaurada.",
     sendFeedbackHeading: "Enviar comentarios",
     sendFeedbackDescription: "Comparte una nota, idea o reporte de error usando tu app de correo.",
     sendFeedbackButton: "💬 Enviar comentarios",
@@ -464,6 +513,22 @@ const elements = {
   reminderToggle: document.querySelector("#reminderToggle"),
   reminderTime: document.querySelector("#reminderTime"),
   reminderComingSoonMessage: document.querySelector("#reminderComingSoonMessage"),
+  accountDescription: document.querySelector("#accountDescription"),
+  accountSignedOutPanel: document.querySelector("#accountSignedOutPanel"),
+  accountSignedInPanel: document.querySelector("#accountSignedInPanel"),
+  accountForm: document.querySelector("#accountForm"),
+  accountEmail: document.querySelector("#accountEmail"),
+  accountPassword: document.querySelector("#accountPassword"),
+  accountNewPassword: document.querySelector("#accountNewPassword"),
+  accountNewPasswordLabel: document.querySelector("#accountNewPasswordLabel"),
+  createAccountButton: document.querySelector("#createAccountButton"),
+  signInButton: document.querySelector("#signInButton"),
+  forgotPasswordButton: document.querySelector("#forgotPasswordButton"),
+  updatePasswordButton: document.querySelector("#updatePasswordButton"),
+  signedInEmail: document.querySelector("#signedInEmail"),
+  signOutButton: document.querySelector("#signOutButton"),
+  accountNote: document.querySelector("#accountNote"),
+  authStatus: document.querySelector("#authStatus"),
   sendFeedbackButton: document.querySelector("#sendFeedbackButton"),
   backupDescription: document.querySelector("#backupDescription"),
   lastBackupStatus: document.querySelector("#lastBackupStatus"),
@@ -489,6 +554,9 @@ let journalCalendarMonth = new Date();
 let journalCalendarInitialized = false;
 let historyCalendarMonth = new Date();
 let historyCalendarInitialized = false;
+let supabaseClient = null;
+let authSession = null;
+let authRecoveryMode = false;
 
 const localSaveProvider = {
   load() {
@@ -962,6 +1030,187 @@ async function importBackupFile(event) {
   } catch {
     setBackupStatus(translate("backupImportFailed"));
   }
+}
+
+function setAuthStatus(message) {
+  if (elements.authStatus) {
+    elements.authStatus.textContent = message || "";
+  }
+}
+
+function authErrorMessage(error) {
+  return error?.message || translate("authUnavailable");
+}
+
+function authEmail() {
+  return elements.accountEmail.value.trim();
+}
+
+function authPassword() {
+  return elements.accountPassword.value;
+}
+
+function authNewPassword() {
+  return elements.accountNewPassword.value;
+}
+
+function renderAuthState() {
+  const signedIn = Boolean(authSession?.user);
+  elements.accountSignedOutPanel.hidden = signedIn;
+  elements.accountSignedInPanel.hidden = !signedIn;
+  elements.accountDescription.textContent = signedIn ? translate("accountDescriptionSignedIn") : translate("accountDescriptionSignedOut");
+  elements.signedInEmail.textContent = signedIn ? translate("signedInAs", { email: authSession.user.email || "" }) : "";
+  elements.accountNote.textContent = translate("accountNote");
+  elements.accountNewPassword.hidden = !authRecoveryMode;
+  elements.accountNewPasswordLabel.hidden = !authRecoveryMode;
+  elements.updatePasswordButton.hidden = !authRecoveryMode;
+}
+
+function renderAuthUnavailable() {
+  authSession = null;
+  authRecoveryMode = false;
+  renderAuthState();
+  setAuthStatus(translate("authUnavailable"));
+  [
+    elements.createAccountButton,
+    elements.signInButton,
+    elements.forgotPasswordButton,
+    elements.updatePasswordButton,
+    elements.signOutButton,
+  ].forEach((button) => {
+    button.disabled = true;
+  });
+}
+
+function cleanupAuthUrl() {
+  if (window.location.hash && /access_token|refresh_token|type=/.test(window.location.hash)) {
+    window.history.replaceState(null, document.title, `${window.location.origin}${window.location.pathname}`);
+  }
+}
+
+async function initializeAuth() {
+  if (!window.supabase?.createClient) {
+    renderAuthUnavailable();
+    return;
+  }
+
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    authSession = session;
+    if (event === "PASSWORD_RECOVERY") {
+      authRecoveryMode = true;
+      setAuthStatus(translate("authSessionRestored"));
+    } else if (event === "SIGNED_OUT") {
+      authRecoveryMode = false;
+    }
+    renderAuthState();
+    cleanupAuthUrl();
+  });
+
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) {
+      setAuthStatus(authErrorMessage(error));
+    }
+    authSession = data?.session || null;
+    renderAuthState();
+    cleanupAuthUrl();
+  } catch {
+    renderAuthUnavailable();
+  }
+}
+
+async function createAccount() {
+  if (!supabaseClient) {
+    setAuthStatus(translate("authUnavailable"));
+    return;
+  }
+  if (!authEmail() || !authPassword()) {
+    setAuthStatus(translate("authEmailPasswordRequired"));
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signUp({
+    email: authEmail(),
+    password: authPassword(),
+    options: { emailRedirectTo: AUTH_REDIRECT_URL },
+  });
+  setAuthStatus(error ? authErrorMessage(error) : translate("authCheckEmail"));
+}
+
+async function signIn() {
+  if (!supabaseClient) {
+    setAuthStatus(translate("authUnavailable"));
+    return;
+  }
+  if (!authEmail() || !authPassword()) {
+    setAuthStatus(translate("authEmailPasswordRequired"));
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: authEmail(),
+    password: authPassword(),
+  });
+  authSession = data?.session || authSession;
+  renderAuthState();
+  setAuthStatus(error ? authErrorMessage(error) : translate("authSignedIn"));
+}
+
+async function signOut() {
+  if (!supabaseClient) {
+    setAuthStatus(translate("authUnavailable"));
+    return;
+  }
+  const { error } = await supabaseClient.auth.signOut();
+  if (!error) {
+    authSession = null;
+    authRecoveryMode = false;
+    renderAuthState();
+  }
+  setAuthStatus(error ? authErrorMessage(error) : translate("authSignedOut"));
+}
+
+async function sendPasswordReset() {
+  if (!supabaseClient) {
+    setAuthStatus(translate("authUnavailable"));
+    return;
+  }
+  if (!authEmail()) {
+    setAuthStatus(translate("authEmailRequired"));
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(authEmail(), {
+    redirectTo: AUTH_REDIRECT_URL,
+  });
+  setAuthStatus(error ? authErrorMessage(error) : translate("authCheckEmail"));
+}
+
+async function updatePassword() {
+  if (!supabaseClient) {
+    setAuthStatus(translate("authUnavailable"));
+    return;
+  }
+  if (!authNewPassword()) {
+    setAuthStatus(translate("authNewPasswordRequired"));
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.updateUser({ password: authNewPassword() });
+  if (!error) {
+    authRecoveryMode = false;
+    elements.accountNewPassword.value = "";
+    renderAuthState();
+  }
+  setAuthStatus(error ? authErrorMessage(error) : translate("authPasswordUpdated"));
 }
 
 function currentLanguage() {
@@ -2098,6 +2347,17 @@ function applyTranslations() {
   setCheckLabel(elements.reminderToggle, translate("reminderPreference"));
   setLabelText("reminderTime", translate("preferredTime"));
   elements.reminderComingSoonMessage.textContent = translate("reminderComingSoon");
+  setText("#accountHeading", translate("accountHeading"));
+  setLabelText("accountEmail", translate("accountEmail"));
+  setLabelText("accountPassword", translate("accountPassword"));
+  setLabelText("accountNewPassword", translate("accountNewPassword"));
+  document.querySelector(".account-actions").setAttribute("aria-label", translate("accountActions"));
+  elements.createAccountButton.textContent = translate("createAccount");
+  elements.signInButton.textContent = translate("signIn");
+  elements.forgotPasswordButton.textContent = translate("forgotPassword");
+  elements.updatePasswordButton.textContent = translate("updatePassword");
+  elements.signOutButton.textContent = translate("signOut");
+  renderAuthState();
   setText("#sendFeedbackHeading", translate("sendFeedbackHeading"));
   setText("#sendFeedbackDescription", translate("sendFeedbackDescription"));
   elements.sendFeedbackButton.textContent = translate("sendFeedbackButton");
@@ -2257,6 +2517,12 @@ function bindEvents() {
   elements.speechRateRange.addEventListener("input", () => updateSetting("speechRate", elements.speechRateRange.value));
   elements.reminderToggle.addEventListener("change", () => updateSetting("reminderEnabled", elements.reminderToggle.checked));
   elements.reminderTime.addEventListener("change", () => updateSetting("reminderTime", elements.reminderTime.value || "09:00"));
+  elements.accountForm.addEventListener("submit", (event) => event.preventDefault());
+  elements.createAccountButton.addEventListener("click", createAccount);
+  elements.signInButton.addEventListener("click", signIn);
+  elements.forgotPasswordButton.addEventListener("click", sendPasswordReset);
+  elements.updatePasswordButton.addEventListener("click", updatePassword);
+  elements.signOutButton.addEventListener("click", signOut);
   elements.sendFeedbackButton.addEventListener("click", (event) => {
     event.preventDefault();
     openFeedbackEmail();
@@ -2281,6 +2547,7 @@ async function startApp() {
   setDateAndGreeting();
   syncSettingsForm();
   bindEvents();
+  initializeAuth();
   loadSpeechVoices();
   if ("speechSynthesis" in window) {
     window.speechSynthesis.addEventListener("voiceschanged", loadSpeechVoices);
