@@ -1042,7 +1042,7 @@ function cloudReflectionRows(userId, reflections) {
       affirmation_id: entry.affirmationId || "",
       category: entry.category || "",
       affirmation: entry.affirmation || "",
-      text: entry.text || "",
+      reflection_text: entry.text || "",
       updated_at: entry.updatedAt || updatedAt,
     }));
 }
