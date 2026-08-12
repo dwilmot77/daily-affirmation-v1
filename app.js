@@ -10,6 +10,13 @@ const REFLECTION_SAVE_DELAY = 1200;
 const DEFAULT_LANGUAGE = "en";
 const SUPPORTED_LANGUAGES = ["en", "es"];
 const RECENT_AFFIRMATION_WINDOW = 14;
+const ENCRYPTION_STORAGE_KEY = "dailyAffirmation.encryption.v1";
+const ENCRYPTION_DB_NAME = "dailyAffirmation.encryption";
+const JOURNAL_KEY_STORE = "journalKeys";
+const JOURNAL_ENCRYPTION_VERSION = 1;
+const JOURNAL_KEY_VERSION = 1;
+const JOURNAL_KDF_ITERATIONS = 310000;
+const JOURNAL_KDF_HASH = "SHA-256";
 const LEGACY_JOURNAL_STORAGE_KEYS = [
   "dailyAffirmation.reflections",
   "dailyAffirmation.journal",
@@ -146,6 +153,22 @@ const translations = {
     cloudBackupSuccess: "Cloud backup finished.",
     cloudBackupFailed: "Cloud backup could not finish: {details}",
     cloudBackupUnavailable: "Cloud backup is unavailable right now. Your local data is still safe on this device.",
+    journalEncryptionStatusUnset: "Journal cloud encryption: Not set up",
+    journalEncryptionStatusProtected: "Journal cloud encryption: Protected",
+    journalEncryptionDescriptionUnset: "Set up a recovery secret so journal text is encrypted on this device before cloud backup.",
+    journalEncryptionDescriptionProtected: "Encrypted journal backup is enabled. Restore is not available yet.",
+    journalEncryptionSetupButton: "Set up journal encryption",
+    journalRecoverySecret: "Recovery secret",
+    journalRecoverySecretConfirm: "Confirm recovery secret",
+    journalEncryptionWarning: "Save this recovery secret somewhere private. If it is lost, encrypted journal entries may not be recoverable on a new device.",
+    saveJournalEncryption: "Save recovery secret",
+    cancel: "Cancel",
+    journalEncryptionSecretRequired: "Enter and confirm your recovery secret.",
+    journalEncryptionSecretMismatch: "The recovery secrets do not match.",
+    journalEncryptionSecretTooShort: "Use a recovery secret with at least 10 characters.",
+    journalEncryptionSetupSuccess: "Journal cloud encryption is protected.",
+    journalEncryptionSetupFailed: "Journal encryption setup could not finish. Your local journals are unchanged.",
+    journalEncryptionRequired: "create a recovery secret before journal cloud backup",
     sendFeedbackHeading: "Send Feedback",
     sendFeedbackDescription: "Share a note, idea, or bug report using your email app.",
     sendFeedbackButton: "💬 Send Feedback",
@@ -340,6 +363,22 @@ const translations = {
     cloudBackupSuccess: "Copia en la nube terminada.",
     cloudBackupFailed: "La copia en la nube no pudo terminar: {details}",
     cloudBackupUnavailable: "La copia en la nube no esta disponible ahora. Tus datos locales siguen seguros en este dispositivo.",
+    journalEncryptionStatusUnset: "Cifrado del diario en la nube: No configurado",
+    journalEncryptionStatusProtected: "Cifrado del diario en la nube: Protegido",
+    journalEncryptionDescriptionUnset: "Configura un secreto de recuperacion para cifrar el texto del diario en este dispositivo antes de la copia en la nube.",
+    journalEncryptionDescriptionProtected: "La copia cifrada del diario esta activada. La restauracion aun no esta disponible.",
+    journalEncryptionSetupButton: "Configurar cifrado del diario",
+    journalRecoverySecret: "Secreto de recuperacion",
+    journalRecoverySecretConfirm: "Confirmar secreto de recuperacion",
+    journalEncryptionWarning: "Guarda este secreto de recuperacion en un lugar privado. Si se pierde, las entradas cifradas del diario pueden no recuperarse en un dispositivo nuevo.",
+    saveJournalEncryption: "Guardar secreto de recuperacion",
+    cancel: "Cancelar",
+    journalEncryptionSecretRequired: "Escribe y confirma tu secreto de recuperacion.",
+    journalEncryptionSecretMismatch: "Los secretos de recuperacion no coinciden.",
+    journalEncryptionSecretTooShort: "Usa un secreto de recuperacion de al menos 10 caracteres.",
+    journalEncryptionSetupSuccess: "El cifrado del diario en la nube esta protegido.",
+    journalEncryptionSetupFailed: "No se pudo terminar la configuracion del cifrado. Tus diarios locales no cambiaron.",
+    journalEncryptionRequired: "crea un secreto de recuperacion antes de copiar el diario en la nube",
     sendFeedbackHeading: "Enviar comentarios",
     sendFeedbackDescription: "Comparte una nota, idea o reporte de error usando tu app de correo.",
     sendFeedbackButton: "💬 Enviar comentarios",
@@ -563,6 +602,18 @@ const elements = {
   forgotPasswordButton: document.querySelector("#forgotPasswordButton"),
   updatePasswordButton: document.querySelector("#updatePasswordButton"),
   signedInEmail: document.querySelector("#signedInEmail"),
+  journalEncryptionPanel: document.querySelector("#journalEncryptionPanel"),
+  journalEncryptionStatus: document.querySelector("#journalEncryptionStatus"),
+  journalEncryptionDescription: document.querySelector("#journalEncryptionDescription"),
+  showJournalEncryptionSetupButton: document.querySelector("#showJournalEncryptionSetupButton"),
+  journalEncryptionForm: document.querySelector("#journalEncryptionForm"),
+  journalRecoverySecretLabel: document.querySelector("#journalRecoverySecretLabel"),
+  journalRecoverySecret: document.querySelector("#journalRecoverySecret"),
+  journalRecoverySecretConfirmLabel: document.querySelector("#journalRecoverySecretConfirmLabel"),
+  journalRecoverySecretConfirm: document.querySelector("#journalRecoverySecretConfirm"),
+  journalEncryptionWarning: document.querySelector("#journalEncryptionWarning"),
+  saveJournalEncryptionButton: document.querySelector("#saveJournalEncryptionButton"),
+  cancelJournalEncryptionButton: document.querySelector("#cancelJournalEncryptionButton"),
   cloudBackupButton: document.querySelector("#cloudBackupButton"),
   lastCloudBackupStatus: document.querySelector("#lastCloudBackupStatus"),
   signOutButton: document.querySelector("#signOutButton"),
@@ -597,6 +648,8 @@ let historyCalendarInitialized = false;
 let supabaseClient = null;
 let authSession = null;
 let authRecoveryMode = false;
+let journalEncryptionConfigured = false;
+let journalEncryptionStatusUserId = "";
 
 const localSaveProvider = {
   load() {
@@ -620,6 +673,29 @@ const localSaveProvider = {
   },
   clear() {
     localStorage.removeItem(STORAGE_KEY);
+  },
+};
+
+const encryptionMetadataProvider = {
+  load() {
+    try {
+      return JSON.parse(localStorage.getItem(ENCRYPTION_STORAGE_KEY)) || { users: {} };
+    } catch {
+      return { users: {} };
+    }
+  },
+  save(metadata) {
+    localStorage.setItem(ENCRYPTION_STORAGE_KEY, JSON.stringify(metadata));
+  },
+  markConfigured(userId) {
+    const metadata = this.load();
+    metadata.users = plainObject(metadata.users);
+    metadata.users[userId] = {
+      configured: true,
+      keyVersion: JOURNAL_KEY_VERSION,
+      updatedAt: new Date().toISOString(),
+    };
+    this.save(metadata);
   },
 };
 
@@ -651,6 +727,138 @@ function plainObject(value) {
 
 function isPlainObject(value) {
   return value && typeof value === "object" && !Array.isArray(value);
+}
+
+function cryptoAvailable() {
+  return Boolean(globalThis.crypto?.subtle && globalThis.crypto?.getRandomValues);
+}
+
+function randomBytes(length) {
+  const bytes = new Uint8Array(length);
+  globalThis.crypto.getRandomValues(bytes);
+  return bytes;
+}
+
+function bytesToBase64(bytes) {
+  let binary = "";
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary);
+}
+
+function base64ToBytes(value) {
+  return Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
+}
+
+function encryptionDbRequest() {
+  if (!globalThis.indexedDB) {
+    return Promise.reject(new Error("IndexedDB unavailable"));
+  }
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(ENCRYPTION_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(JOURNAL_KEY_STORE)) {
+        db.createObjectStore(JOURNAL_KEY_STORE, { keyPath: "userId" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Encryption storage unavailable"));
+  });
+}
+
+async function encryptionStoreOperation(mode, operation) {
+  const db = await encryptionDbRequest();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(JOURNAL_KEY_STORE, mode);
+    const store = transaction.objectStore(JOURNAL_KEY_STORE);
+    const request = operation(store);
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error || new Error("Encryption storage unavailable"));
+  });
+}
+
+async function storeLocalJournalKey(userId, key) {
+  await encryptionStoreOperation("readwrite", (store) => store.put({
+    userId,
+    key,
+    keyVersion: JOURNAL_KEY_VERSION,
+    updatedAt: new Date().toISOString(),
+  }));
+}
+
+async function getLocalJournalKey(userId) {
+  const entry = await encryptionStoreOperation("readonly", (store) => store.get(userId));
+  return entry?.key || null;
+}
+
+async function importNonExtractableJournalKey(rawKey) {
+  return crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
+}
+
+async function deriveJournalWrappingKey(secret, salt) {
+  const secretBytes = new TextEncoder().encode(secret);
+  const keyMaterial = await crypto.subtle.importKey("raw", secretBytes, "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations: JOURNAL_KDF_ITERATIONS,
+      hash: JOURNAL_KDF_HASH,
+    },
+    keyMaterial,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["wrapKey", "unwrapKey"],
+  );
+}
+
+async function createWrappedJournalKey(secret) {
+  const journalKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+  const salt = randomBytes(16);
+  const wrappingIv = randomBytes(12);
+  const wrappingKey = await deriveJournalWrappingKey(secret, salt);
+  const wrappedKey = await crypto.subtle.wrapKey("raw", journalKey, wrappingKey, { name: "AES-GCM", iv: wrappingIv });
+  const rawJournalKey = await crypto.subtle.exportKey("raw", journalKey);
+  const localJournalKey = await importNonExtractableJournalKey(rawJournalKey);
+  return {
+    localJournalKey,
+    cloudMetadata: {
+      key_version: JOURNAL_KEY_VERSION,
+      wrapped_journal_key: bytesToBase64(new Uint8Array(wrappedKey)),
+      wrapping_iv: bytesToBase64(wrappingIv),
+      kdf_salt: bytesToBase64(salt),
+      kdf_iterations: JOURNAL_KDF_ITERATIONS,
+      kdf_hash: JOURNAL_KDF_HASH,
+      kdf_algorithm: "PBKDF2",
+      wrapping_algorithm: "AES-GCM",
+      updated_at: new Date().toISOString(),
+    },
+  };
+}
+
+async function unwrapJournalKey(secret, metadata) {
+  const wrappingKey = await deriveJournalWrappingKey(secret, base64ToBytes(metadata.kdf_salt));
+  return crypto.subtle.unwrapKey(
+    "raw",
+    base64ToBytes(metadata.wrapped_journal_key),
+    wrappingKey,
+    { name: "AES-GCM", iv: base64ToBytes(metadata.wrapping_iv) },
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+async function encryptReflectionText(journalKey, text) {
+  const iv = randomBytes(12);
+  const plaintext = new TextEncoder().encode(text || "");
+  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, journalKey, plaintext);
+  return {
+    ciphertext: bytesToBase64(new Uint8Array(ciphertext)),
+    iv: bytesToBase64(iv),
+  };
 }
 
 function normalizeHistory(history) {
@@ -1040,20 +1248,34 @@ function cloudFavoriteRows(userId, favoriteIds) {
   }));
 }
 
-function cloudReflectionRows(userId, reflections) {
+async function cloudReflectionRows(userId, reflections) {
   const updatedAt = new Date().toISOString();
-  return Object.values(reflections || {})
-    .filter((entry) => entry?.id && entry?.date)
-    .map((entry) => ({
+  const entries = Object.values(reflections || {}).filter((entry) => entry?.id && entry?.date);
+  if (!entries.length) {
+    return [];
+  }
+  const journalKey = await getLocalJournalKey(userId);
+  if (!journalKey) {
+    throw new Error(translate("journalEncryptionRequired"));
+  }
+  const rows = [];
+  for (const entry of entries) {
+    const encrypted = await encryptReflectionText(journalKey, entry.text || "");
+    rows.push({
       user_id: userId,
       id: entry.id,
       date: entry.date,
       affirmation_id: entry.affirmationId || "",
       category: entry.category || "",
       affirmation: entry.affirmation || "",
-      reflection_text: entry.text || "",
+      reflection_text: null,
+      reflection_ciphertext: encrypted.ciphertext,
+      reflection_iv: encrypted.iv,
+      encryption_version: JOURNAL_ENCRYPTION_VERSION,
       updated_at: entry.updatedAt || updatedAt,
-    }));
+    });
+  }
+  return rows;
 }
 
 function cloudHistoryRows(userId, installationId, history) {
@@ -1144,11 +1366,17 @@ async function backupLocalDataToCloud(userId) {
 
   await backupFavoritesToCloud(userId, localState.favorites, failures);
 
-  const reflectionRows = cloudReflectionRows(userId, localState.reflections);
-  if (reflectionRows.length) {
-    await recordCloudStep(failures, "reflections", () => supabaseClient
-      .from("reflections")
-      .upsert(reflectionRows, { onConflict: "user_id,id" }));
+  try {
+    const reflectionRows = await cloudReflectionRows(userId, localState.reflections);
+    if (reflectionRows.length) {
+      await recordCloudStep(failures, "reflections", () => supabaseClient
+        .from("reflections")
+        .upsert(reflectionRows, { onConflict: "user_id,id" }));
+    }
+  } catch (error) {
+    if (Object.keys(localState.reflections || {}).length) {
+      failures.push(`reflections: ${error.message || translate("journalEncryptionRequired")}`);
+    }
   }
 
   const historyRows = cloudHistoryRows(userId, installationId, localState.history);
@@ -1327,6 +1555,108 @@ function authConfirmPassword() {
   return elements.accountConfirmPassword.value;
 }
 
+function renderJournalEncryptionStatus() {
+  const signedIn = Boolean(authSession?.user) && !authRecoveryMode;
+  if (elements.journalEncryptionPanel) {
+    elements.journalEncryptionPanel.hidden = !signedIn;
+  }
+  if (!signedIn) {
+    return;
+  }
+
+  elements.journalEncryptionStatus.textContent = journalEncryptionConfigured
+    ? translate("journalEncryptionStatusProtected")
+    : translate("journalEncryptionStatusUnset");
+  elements.journalEncryptionDescription.textContent = journalEncryptionConfigured
+    ? translate("journalEncryptionDescriptionProtected")
+    : translate("journalEncryptionDescriptionUnset");
+  elements.showJournalEncryptionSetupButton.textContent = translate("journalEncryptionSetupButton");
+  elements.showJournalEncryptionSetupButton.hidden = journalEncryptionConfigured || !elements.journalEncryptionForm.hidden;
+  elements.journalRecoverySecretLabel.textContent = translate("journalRecoverySecret");
+  elements.journalRecoverySecretConfirmLabel.textContent = translate("journalRecoverySecretConfirm");
+  elements.journalEncryptionWarning.textContent = translate("journalEncryptionWarning");
+  elements.saveJournalEncryptionButton.textContent = translate("saveJournalEncryption");
+  elements.cancelJournalEncryptionButton.textContent = translate("cancel");
+}
+
+async function refreshJournalEncryptionStatus() {
+  const userId = authSession?.user?.id || "";
+  journalEncryptionStatusUserId = userId;
+  journalEncryptionConfigured = false;
+  if (userId) {
+    try {
+      journalEncryptionConfigured = Boolean(await getLocalJournalKey(userId));
+    } catch {
+      journalEncryptionConfigured = false;
+    }
+  }
+  if (journalEncryptionStatusUserId === userId) {
+    renderJournalEncryptionStatus();
+  }
+}
+
+function showJournalEncryptionSetup() {
+  elements.journalEncryptionForm.hidden = false;
+  elements.showJournalEncryptionSetupButton.hidden = true;
+  elements.journalRecoverySecret.value = "";
+  elements.journalRecoverySecretConfirm.value = "";
+  elements.journalRecoverySecret.focus();
+  renderJournalEncryptionStatus();
+}
+
+function cancelJournalEncryptionSetup() {
+  elements.journalEncryptionForm.hidden = true;
+  elements.journalRecoverySecret.value = "";
+  elements.journalRecoverySecretConfirm.value = "";
+  renderJournalEncryptionStatus();
+}
+
+async function saveJournalEncryptionSetup() {
+  if (!supabaseClient || !authSession?.user?.id || !cryptoAvailable()) {
+    setCloudBackupStatus(translate("journalEncryptionSetupFailed"));
+    return;
+  }
+
+  const secret = elements.journalRecoverySecret.value;
+  const confirmSecret = elements.journalRecoverySecretConfirm.value;
+  if (!secret || !confirmSecret) {
+    setCloudBackupStatus(translate("journalEncryptionSecretRequired"));
+    return;
+  }
+  if (secret !== confirmSecret) {
+    setCloudBackupStatus(translate("journalEncryptionSecretMismatch"));
+    return;
+  }
+  if (secret.length < 10) {
+    setCloudBackupStatus(translate("journalEncryptionSecretTooShort"));
+    return;
+  }
+
+  elements.saveJournalEncryptionButton.disabled = true;
+  try {
+    const userId = authSession.user.id;
+    const { localJournalKey, cloudMetadata } = await createWrappedJournalKey(secret);
+    const { error } = await supabaseClient
+      .from("journal_encryption_keys")
+      .upsert({ user_id: userId, ...cloudMetadata }, { onConflict: "user_id" });
+    if (error) {
+      throw error;
+    }
+    await storeLocalJournalKey(userId, localJournalKey);
+    encryptionMetadataProvider.markConfigured(userId);
+    journalEncryptionConfigured = true;
+    cancelJournalEncryptionSetup();
+    renderJournalEncryptionStatus();
+    setCloudBackupStatus(translate("journalEncryptionSetupSuccess"));
+  } catch {
+    setCloudBackupStatus(translate("journalEncryptionSetupFailed"));
+  } finally {
+    elements.saveJournalEncryptionButton.disabled = false;
+    elements.journalRecoverySecret.value = "";
+    elements.journalRecoverySecretConfirm.value = "";
+  }
+}
+
 function renderAuthState() {
   const signedIn = Boolean(authSession?.user);
   elements.accountSignedOutPanel.hidden = signedIn && !authRecoveryMode;
@@ -1351,6 +1681,7 @@ function renderAuthState() {
   elements.forgotPasswordButton.hidden = authRecoveryMode;
   elements.updatePasswordButton.hidden = !authRecoveryMode;
   renderCloudBackupStatus();
+  renderJournalEncryptionStatus();
 }
 
 function renderAuthUnavailable() {
@@ -1364,6 +1695,9 @@ function renderAuthUnavailable() {
     elements.forgotPasswordButton,
     elements.updatePasswordButton,
     elements.signOutButton,
+    elements.showJournalEncryptionSetupButton,
+    elements.saveJournalEncryptionButton,
+    elements.cancelJournalEncryptionButton,
     elements.cloudBackupButton,
   ].forEach((button) => {
     button.disabled = true;
@@ -1401,6 +1735,7 @@ async function initializeAuth() {
       setAuthStatus(translate("authSessionRestored"));
     }
     renderAuthState();
+    refreshJournalEncryptionStatus();
     cleanupAuthUrl();
   });
 
@@ -1411,6 +1746,7 @@ async function initializeAuth() {
     }
     authSession = data?.session || null;
     renderAuthState();
+    refreshJournalEncryptionStatus();
     cleanupAuthUrl();
   } catch {
     renderAuthUnavailable();
@@ -1454,6 +1790,7 @@ async function signIn() {
     authRecoveryMode = false;
   }
   renderAuthState();
+  refreshJournalEncryptionStatus();
   setAuthStatus(error ? authErrorMessage(error) : translate("authSignedIn"));
 }
 
@@ -1467,6 +1804,7 @@ async function signOut() {
     authSession = null;
     authRecoveryMode = false;
     renderAuthState();
+    refreshJournalEncryptionStatus();
   }
   setAuthStatus(error ? authErrorMessage(error) : translate("authSignedOut"));
 }
@@ -2698,6 +3036,7 @@ function applyTranslations() {
   elements.cloudBackupButton.textContent = translate("cloudBackupNow");
   elements.signOutButton.textContent = translate("signOut");
   renderAuthState();
+  renderJournalEncryptionStatus();
   setText("#sendFeedbackHeading", translate("sendFeedbackHeading"));
   setText("#sendFeedbackDescription", translate("sendFeedbackDescription"));
   elements.sendFeedbackButton.textContent = translate("sendFeedbackButton");
@@ -2866,6 +3205,10 @@ function bindEvents() {
   elements.forgotPasswordButton.addEventListener("click", sendPasswordReset);
   elements.updatePasswordButton.addEventListener("click", updatePassword);
   elements.signOutButton.addEventListener("click", signOut);
+  elements.showJournalEncryptionSetupButton.addEventListener("click", showJournalEncryptionSetup);
+  elements.saveJournalEncryptionButton.addEventListener("click", saveJournalEncryptionSetup);
+  elements.cancelJournalEncryptionButton.addEventListener("click", cancelJournalEncryptionSetup);
+  elements.journalEncryptionForm.addEventListener("submit", (event) => event.preventDefault());
   elements.cloudBackupButton.addEventListener("click", backUpNow);
   elements.sendFeedbackButton.addEventListener("click", (event) => {
     event.preventDefault();

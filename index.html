@@ -221,6 +221,26 @@
 
           <div id="accountSignedInPanel" hidden>
             <p id="signedInEmail">Signed in as: </p>
+            <div class="journal-encryption-panel" id="journalEncryptionPanel">
+              <p class="field-note" id="journalEncryptionStatus">Journal cloud encryption: Not set up</p>
+              <p class="field-note" id="journalEncryptionDescription">
+                Set up a recovery secret so journal text is encrypted on this device before cloud backup.
+              </p>
+              <button type="button" id="showJournalEncryptionSetupButton">Set up journal encryption</button>
+              <form class="journal-encryption-form" id="journalEncryptionForm" hidden>
+                <label for="journalRecoverySecret" id="journalRecoverySecretLabel">Recovery secret</label>
+                <input id="journalRecoverySecret" type="password" autocomplete="new-password" />
+                <label for="journalRecoverySecretConfirm" id="journalRecoverySecretConfirmLabel">Confirm recovery secret</label>
+                <input id="journalRecoverySecretConfirm" type="password" autocomplete="new-password" />
+                <p class="field-note" id="journalEncryptionWarning">
+                  Save this recovery secret somewhere private. If it is lost, encrypted journal entries may not be recoverable on a new device.
+                </p>
+                <div class="account-actions" aria-label="Journal encryption actions">
+                  <button type="button" id="saveJournalEncryptionButton">Save recovery secret</button>
+                  <button type="button" id="cancelJournalEncryptionButton">Cancel</button>
+                </div>
+              </form>
+            </div>
             <button type="button" id="cloudBackupButton">Back up now</button>
             <p class="field-note" id="lastCloudBackupStatus">Last cloud backup: Never</p>
             <button type="button" id="signOutButton">Sign out</button>
