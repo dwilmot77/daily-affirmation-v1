@@ -726,6 +726,55 @@ button.calendar-day:hover {
   background: var(--danger);
 }
 
+.confirm-dialog {
+  width: min(calc(100% - 32px), 520px);
+  max-height: calc(100dvh - 32px - var(--safe-top) - var(--safe-bottom));
+  padding: 0;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.confirm-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.48);
+}
+
+.confirm-dialog-card {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+}
+
+.confirm-dialog h2 {
+  font-size: 1.35rem;
+}
+
+.confirm-dialog p {
+  margin: 0;
+}
+
+.dialog-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.secondary-button {
+  color: var(--accent-strong);
+  background: var(--surface-2);
+}
+
+.secondary-button:hover {
+  color: var(--accent-text);
+  background: var(--accent-strong);
+}
+
+.danger-button {
+  background: var(--danger);
+}
+
 .status-message {
   display: none;
   width: min(calc(100% - 32px), 900px);

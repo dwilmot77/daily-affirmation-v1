@@ -353,6 +353,26 @@
       </section>
     </main>
 
+    <dialog
+      class="confirm-dialog"
+      id="clearDataDialog"
+      aria-labelledby="clearDataDialogTitle"
+      aria-describedby="clearDataDialogDescription clearDataDialogUndo clearDataDialogCloud"
+    >
+      <div class="confirm-dialog-card">
+        <h2 id="clearDataDialogTitle">⚠️ Attention</h2>
+        <p id="clearDataDialogDescription">
+          Clearing local app data will permanently remove journals, favorites, history, settings, and feedback stored on this device.
+        </p>
+        <p id="clearDataDialogUndo"><strong>This cannot be undone.</strong></p>
+        <p id="clearDataDialogCloud">Your cloud backup will not be deleted.</p>
+        <div class="dialog-actions" aria-label="Clear local app data confirmation actions">
+          <button type="button" class="secondary-button" id="cancelClearDataButton">Cancel</button>
+          <button type="button" class="danger-button" id="confirmClearDataButton">Clear local data</button>
+        </div>
+      </div>
+    </dialog>
+
     <p class="status-message" id="statusMessage" role="status" aria-live="polite" hidden></p>
     <script>
       (() => {

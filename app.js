@@ -205,6 +205,12 @@ const translations = {
     clearDataHeading: "Clear local app data",
     clearDataDescription: "This removes favorites, reflections, settings, and feedback from this browser.",
     clearDataButton: "Clear local app data",
+    clearDataDialogTitle: "⚠️ Attention",
+    clearDataDialogDescription: "Clearing local app data will permanently remove journals, favorites, history, settings, and feedback stored on this device.",
+    clearDataDialogUndo: "This cannot be undone.",
+    clearDataDialogCloud: "Your cloud backup will not be deleted.",
+    clearDataDialogActions: "Clear local app data confirmation actions",
+    clearLocalDataConfirmButton: "Clear local data",
     saving: "Saving...",
     savedJustNow: "Saved just now",
     affirmationsLoading: "Affirmations are still loading.",
@@ -432,6 +438,12 @@ const translations = {
     clearDataHeading: "Borrar datos locales de la app",
     clearDataDescription: "Esto elimina favoritas, reflexiones, ajustes y comentarios de este navegador.",
     clearDataButton: "Borrar datos locales de la app",
+    clearDataDialogTitle: "⚠️ Atencion",
+    clearDataDialogDescription: "Borrar los datos locales de la app eliminara permanentemente diarios, favoritas, historial, ajustes y comentarios guardados en este dispositivo.",
+    clearDataDialogUndo: "Esto no se puede deshacer.",
+    clearDataDialogCloud: "Tu copia en la nube no se eliminara.",
+    clearDataDialogActions: "Acciones de confirmacion para borrar datos locales",
+    clearLocalDataConfirmButton: "Borrar datos locales",
     saving: "Guardando...",
     savedJustNow: "Guardado hace un momento",
     affirmationsLoading: "Las afirmaciones todavía se están cargando.",
@@ -671,6 +683,14 @@ const elements = {
   backupStatus: document.querySelector("#backupStatus"),
   clearDataWarning: document.querySelector("#clearDataWarning"),
   clearDataButton: document.querySelector("#clearDataButton"),
+  clearDataDialog: document.querySelector("#clearDataDialog"),
+  clearDataDialogTitle: document.querySelector("#clearDataDialogTitle"),
+  clearDataDialogDescription: document.querySelector("#clearDataDialogDescription"),
+  clearDataDialogUndo: document.querySelector("#clearDataDialogUndo"),
+  clearDataDialogCloud: document.querySelector("#clearDataDialogCloud"),
+  clearDataDialogActions: document.querySelector(".dialog-actions"),
+  cancelClearDataButton: document.querySelector("#cancelClearDataButton"),
+  confirmClearDataButton: document.querySelector("#confirmClearDataButton"),
   themeQuickButton: document.querySelector("#themeQuickButton"),
 };
 
@@ -692,6 +712,7 @@ let authSession = null;
 let authRecoveryMode = false;
 let journalEncryptionConfigured = false;
 let journalEncryptionStatusUserId = "";
+let clearDataReturnFocus = null;
 
 const localSaveProvider = {
   load() {
@@ -3517,6 +3538,13 @@ function applyTranslations() {
   setText("#clearDataHeading", translate("clearDataHeading"));
   setText(".danger-zone p", translate("clearDataDescription"));
   elements.clearDataButton.textContent = translate("clearDataButton");
+  elements.clearDataDialogTitle.textContent = translate("clearDataDialogTitle");
+  elements.clearDataDialogDescription.textContent = translate("clearDataDialogDescription");
+  elements.clearDataDialogUndo.querySelector("strong").textContent = translate("clearDataDialogUndo");
+  elements.clearDataDialogCloud.textContent = translate("clearDataDialogCloud");
+  elements.clearDataDialogActions.setAttribute("aria-label", translate("clearDataDialogActions"));
+  elements.cancelClearDataButton.textContent = translate("cancel");
+  elements.confirmClearDataButton.textContent = translate("clearLocalDataConfirmButton");
   syncSettingsForm();
   renderVoiceOptions();
 }
@@ -3550,12 +3578,40 @@ function stopSpeech() {
   }
 }
 
-function clearLocalData() {
-  const confirmed = window.confirm(translate("clearConfirm"));
-  if (!confirmed) {
-    return;
+function openClearDataDialog() {
+  clearDataReturnFocus = document.activeElement;
+  if (typeof elements.clearDataDialog.showModal === "function") {
+    elements.clearDataDialog.showModal();
+  } else {
+    elements.clearDataDialog.setAttribute("open", "");
+  }
+  elements.cancelClearDataButton.focus();
+}
+
+function closeClearDataDialog() {
+  if (elements.clearDataDialog.open) {
+    elements.clearDataDialog.close();
+  } else {
+    elements.clearDataDialog.removeAttribute("open");
   }
 
+  if (clearDataReturnFocus && typeof clearDataReturnFocus.focus === "function") {
+    clearDataReturnFocus.focus();
+  }
+  clearDataReturnFocus = null;
+}
+
+function confirmClearLocalData() {
+  if (elements.clearDataDialog.open) {
+    elements.clearDataDialog.close();
+  } else {
+    elements.clearDataDialog.removeAttribute("open");
+  }
+  clearDataReturnFocus = null;
+  clearLocalData();
+}
+
+function clearLocalData() {
   localSaveProvider.clear();
   state = structuredClone(defaultState);
   saveState();
@@ -3688,7 +3744,18 @@ function bindEvents() {
   });
   elements.exportDataButton.addEventListener("click", exportMyData);
   elements.importBackupInput.addEventListener("change", importBackupFile);
-  elements.clearDataButton.addEventListener("click", clearLocalData);
+  elements.clearDataButton.addEventListener("click", openClearDataDialog);
+  elements.cancelClearDataButton.addEventListener("click", closeClearDataDialog);
+  elements.confirmClearDataButton.addEventListener("click", confirmClearLocalData);
+  elements.clearDataDialog.addEventListener("cancel", () => {
+    clearDataReturnFocus = elements.clearDataButton;
+  });
+  elements.clearDataDialog.addEventListener("close", () => {
+    if (clearDataReturnFocus && typeof clearDataReturnFocus.focus === "function") {
+      clearDataReturnFocus.focus();
+    }
+    clearDataReturnFocus = null;
+  });
   elements.themeQuickButton.addEventListener("click", () => {
     const nextTheme = state.settings.theme === "dark" ? "light" : "dark";
     updateSetting("theme", nextTheme);
