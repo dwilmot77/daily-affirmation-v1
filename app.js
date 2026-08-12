@@ -113,9 +113,11 @@ const translations = {
     accountHeading: "Account / Cloud Backup",
     accountDescriptionSignedOut: "Your data is currently stored only on this device. Cloud backup setup is in progress.",
     accountDescriptionSignedIn: "You are signed in. Cloud backup setup is in progress, but this app is not syncing saved data yet.",
+    accountDescriptionRecovery: "Choose a new password for your account.",
     accountEmail: "Email",
     accountPassword: "Password",
     accountNewPassword: "New password",
+    accountConfirmPassword: "Confirm new password",
     accountActions: "Account actions",
     createAccount: "Create account",
     signIn: "Sign in",
@@ -128,6 +130,7 @@ const translations = {
     authEmailPasswordRequired: "Enter an email and password.",
     authEmailRequired: "Enter your email address.",
     authNewPasswordRequired: "Enter a new password.",
+    authPasswordMismatch: "The new passwords do not match.",
     authCheckEmail: "Check your email to continue.",
     authSignedIn: "Signed in.",
     authSignedOut: "Signed out.",
@@ -294,9 +297,11 @@ const translations = {
     accountHeading: "Cuenta / copia en la nube",
     accountDescriptionSignedOut: "Tus datos se guardan actualmente solo en este dispositivo. La copia en la nube esta en preparacion.",
     accountDescriptionSignedIn: "Has iniciado sesion. La copia en la nube esta en preparacion, pero esta app aun no sincroniza datos guardados.",
+    accountDescriptionRecovery: "Elige una nueva contrasena para tu cuenta.",
     accountEmail: "Correo electronico",
     accountPassword: "Contrasena",
     accountNewPassword: "Nueva contrasena",
+    accountConfirmPassword: "Confirmar nueva contrasena",
     accountActions: "Acciones de cuenta",
     createAccount: "Crear cuenta",
     signIn: "Iniciar sesion",
@@ -309,6 +314,7 @@ const translations = {
     authEmailPasswordRequired: "Escribe un correo y una contrasena.",
     authEmailRequired: "Escribe tu correo electronico.",
     authNewPasswordRequired: "Escribe una nueva contrasena.",
+    authPasswordMismatch: "Las nuevas contrasenas no coinciden.",
     authCheckEmail: "Revisa tu correo para continuar.",
     authSignedIn: "Sesion iniciada.",
     authSignedOut: "Sesion cerrada.",
@@ -517,10 +523,14 @@ const elements = {
   accountSignedOutPanel: document.querySelector("#accountSignedOutPanel"),
   accountSignedInPanel: document.querySelector("#accountSignedInPanel"),
   accountForm: document.querySelector("#accountForm"),
+  accountEmailLabel: document.querySelector("#accountEmailLabel"),
   accountEmail: document.querySelector("#accountEmail"),
+  accountPasswordLabel: document.querySelector("#accountPasswordLabel"),
   accountPassword: document.querySelector("#accountPassword"),
   accountNewPassword: document.querySelector("#accountNewPassword"),
   accountNewPasswordLabel: document.querySelector("#accountNewPasswordLabel"),
+  accountConfirmPassword: document.querySelector("#accountConfirmPassword"),
+  accountConfirmPasswordLabel: document.querySelector("#accountConfirmPasswordLabel"),
   createAccountButton: document.querySelector("#createAccountButton"),
   signInButton: document.querySelector("#signInButton"),
   forgotPasswordButton: document.querySelector("#forgotPasswordButton"),
@@ -1054,15 +1064,32 @@ function authNewPassword() {
   return elements.accountNewPassword.value;
 }
 
+function authConfirmPassword() {
+  return elements.accountConfirmPassword.value;
+}
+
 function renderAuthState() {
   const signedIn = Boolean(authSession?.user);
-  elements.accountSignedOutPanel.hidden = signedIn;
-  elements.accountSignedInPanel.hidden = !signedIn;
-  elements.accountDescription.textContent = signedIn ? translate("accountDescriptionSignedIn") : translate("accountDescriptionSignedOut");
-  elements.signedInEmail.textContent = signedIn ? translate("signedInAs", { email: authSession.user.email || "" }) : "";
+  elements.accountSignedOutPanel.hidden = signedIn && !authRecoveryMode;
+  elements.accountSignedInPanel.hidden = !signedIn || authRecoveryMode;
+  elements.accountDescription.textContent = authRecoveryMode
+    ? translate("accountDescriptionRecovery")
+    : signedIn
+      ? translate("accountDescriptionSignedIn")
+      : translate("accountDescriptionSignedOut");
+  elements.signedInEmail.textContent = signedIn && !authRecoveryMode ? translate("signedInAs", { email: authSession.user.email || "" }) : "";
   elements.accountNote.textContent = translate("accountNote");
+  elements.accountEmail.hidden = authRecoveryMode;
+  elements.accountEmailLabel.hidden = authRecoveryMode;
+  elements.accountPassword.hidden = authRecoveryMode;
+  elements.accountPasswordLabel.hidden = authRecoveryMode;
   elements.accountNewPassword.hidden = !authRecoveryMode;
   elements.accountNewPasswordLabel.hidden = !authRecoveryMode;
+  elements.accountConfirmPassword.hidden = !authRecoveryMode;
+  elements.accountConfirmPasswordLabel.hidden = !authRecoveryMode;
+  elements.createAccountButton.hidden = authRecoveryMode;
+  elements.signInButton.hidden = authRecoveryMode;
+  elements.forgotPasswordButton.hidden = authRecoveryMode;
   elements.updatePasswordButton.hidden = !authRecoveryMode;
 }
 
@@ -1106,9 +1133,11 @@ async function initializeAuth() {
     authSession = session;
     if (event === "PASSWORD_RECOVERY") {
       authRecoveryMode = true;
-      setAuthStatus(translate("authSessionRestored"));
+      setAuthStatus(translate("accountDescriptionRecovery"));
     } else if (event === "SIGNED_OUT") {
       authRecoveryMode = false;
+    } else if (event === "SIGNED_IN" && !authRecoveryMode) {
+      setAuthStatus(translate("authSessionRestored"));
     }
     renderAuthState();
     cleanupAuthUrl();
@@ -1160,6 +1189,9 @@ async function signIn() {
     password: authPassword(),
   });
   authSession = data?.session || authSession;
+  if (!error) {
+    authRecoveryMode = false;
+  }
   renderAuthState();
   setAuthStatus(error ? authErrorMessage(error) : translate("authSignedIn"));
 }
@@ -1203,11 +1235,16 @@ async function updatePassword() {
     setAuthStatus(translate("authNewPasswordRequired"));
     return;
   }
+  if (authNewPassword() !== authConfirmPassword()) {
+    setAuthStatus(translate("authPasswordMismatch"));
+    return;
+  }
 
   const { error } = await supabaseClient.auth.updateUser({ password: authNewPassword() });
   if (!error) {
     authRecoveryMode = false;
     elements.accountNewPassword.value = "";
+    elements.accountConfirmPassword.value = "";
     renderAuthState();
   }
   setAuthStatus(error ? authErrorMessage(error) : translate("authPasswordUpdated"));
@@ -2351,6 +2388,7 @@ function applyTranslations() {
   setLabelText("accountEmail", translate("accountEmail"));
   setLabelText("accountPassword", translate("accountPassword"));
   setLabelText("accountNewPassword", translate("accountNewPassword"));
+  setLabelText("accountConfirmPassword", translate("accountConfirmPassword"));
   document.querySelector(".account-actions").setAttribute("aria-label", translate("accountActions"));
   elements.createAccountButton.textContent = translate("createAccount");
   elements.signInButton.textContent = translate("signIn");

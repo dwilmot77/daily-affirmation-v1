@@ -256,12 +256,14 @@
 
           <div id="accountSignedOutPanel">
             <form class="account-form" id="accountForm">
-              <label for="accountEmail">Email</label>
+              <label for="accountEmail" id="accountEmailLabel">Email</label>
               <input id="accountEmail" type="email" autocomplete="email" inputmode="email" />
-              <label for="accountPassword">Password</label>
+              <label for="accountPassword" id="accountPasswordLabel">Password</label>
               <input id="accountPassword" type="password" autocomplete="current-password" minlength="6" />
               <label for="accountNewPassword" id="accountNewPasswordLabel" hidden>New password</label>
               <input id="accountNewPassword" type="password" autocomplete="new-password" minlength="6" hidden />
+              <label for="accountConfirmPassword" id="accountConfirmPasswordLabel" hidden>Confirm new password</label>
+              <input id="accountConfirmPassword" type="password" autocomplete="new-password" minlength="6" hidden />
               <div class="account-actions" aria-label="Account actions">
                 <button type="button" id="createAccountButton">Create account</button>
                 <button type="button" id="signInButton">Sign in</button>

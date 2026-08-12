@@ -1,4 +1,4 @@
-const CACHE_NAME = "daily-affirmation-v1.1.17";
+const CACHE_NAME = "daily-affirmation-v1.1.18";
 const APP_SHELL = [
   "./",
   "./index.html",
