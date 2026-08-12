@@ -162,6 +162,10 @@ const translations = {
     cloudRestoreConfirm: "Restore saved cloud data to this device? Cloud data will be merged with what is already here.",
     cloudRestoreConfirmWithLocal: "This device already has saved Daily Affirmation data. Restore will merge cloud data with this device and will not delete local-only entries. Continue?",
     cloudRestoreRecoveryRequired: "Enter your recovery secret to restore encrypted journal entries.",
+    cloudRestoreDataFetchFailed: "Cloud data fetch failed. Check your connection and try again.",
+    cloudRestoreKeyRecordMissing: "Recovery key record unavailable. Journal restore cannot continue until the cloud recovery key is available.",
+    cloudRestoreKeyUnlockFailed: "Journal key could not be unlocked. Check your recovery secret and try again.",
+    cloudRestoreLocalKeySaveFailed: "Journal key was unlocked but could not be saved on this device. Your local data is unchanged.",
     cloudRestoreSecret: "Journal recovery secret",
     cloudRestoreSecretNote: "Enter your recovery secret to unlock encrypted journal entries before restoring them to this device.",
     cloudRestoreWithSecret: "Restore with recovery secret",
@@ -385,6 +389,10 @@ const translations = {
     cloudRestoreConfirm: "Restaurar datos guardados en la nube en este dispositivo? Los datos de la nube se combinaran con lo que ya esta aqui.",
     cloudRestoreConfirmWithLocal: "Este dispositivo ya tiene datos guardados de Daily Affirmation. La restauracion combinara datos de la nube con este dispositivo y no borrara entradas solo locales. Continuar?",
     cloudRestoreRecoveryRequired: "Escribe tu secreto de recuperacion para restaurar entradas cifradas del diario.",
+    cloudRestoreDataFetchFailed: "No se pudieron obtener los datos de la nube. Revisa tu conexion e intenta de nuevo.",
+    cloudRestoreKeyRecordMissing: "El registro de clave de recuperacion no esta disponible. La restauracion del diario no puede continuar hasta que la clave de recuperacion en la nube este disponible.",
+    cloudRestoreKeyUnlockFailed: "No se pudo desbloquear la clave del diario. Revisa tu secreto de recuperacion e intenta de nuevo.",
+    cloudRestoreLocalKeySaveFailed: "La clave del diario se desbloqueo, pero no pudo guardarse en este dispositivo. Tus datos locales no cambiaron.",
     cloudRestoreSecret: "Secreto de recuperacion del diario",
     cloudRestoreSecretNote: "Escribe tu secreto de recuperacion para desbloquear entradas cifradas del diario antes de restaurarlas en este dispositivo.",
     cloudRestoreWithSecret: "Restaurar con secreto de recuperacion",
@@ -1472,6 +1480,20 @@ async function backUpNow() {
   }
 }
 
+class CloudRestoreError extends Error {
+  constructor(translationKey) {
+    super(translationKey);
+    this.translationKey = translationKey;
+  }
+}
+
+function restoreErrorMessage(error, recoverySecret = "") {
+  if (error?.translationKey) {
+    return translate(error.translationKey);
+  }
+  return recoverySecret ? translate("cloudRestoreKeyUnlockFailed") : translate("cloudRestoreFailed");
+}
+
 function hasMeaningfulLocalData(localState = state) {
   const current = migrateSavedState(localState);
   return Boolean(
@@ -1502,15 +1524,26 @@ async function fetchCloudRows(table, userId) {
 }
 
 async function fetchCloudRestoreData(userId) {
-  const [settings, favorites, reflections, history, customAffirmations, feedbackResponses, keyRows] = await Promise.all([
-    fetchCloudRows("user_settings", userId),
-    fetchCloudRows("favorites", userId),
-    fetchCloudRows("reflections", userId),
-    fetchCloudRows("history", userId),
-    fetchCloudRows("custom_affirmations", userId),
-    fetchCloudRows("feedback_responses", userId),
-    fetchCloudRows("journal_encryption_keys", userId),
-  ]);
+  let settings;
+  let favorites;
+  let reflections;
+  let history;
+  let customAffirmations;
+  let feedbackResponses;
+  let keyRows;
+  try {
+    [settings, favorites, reflections, history, customAffirmations, feedbackResponses, keyRows] = await Promise.all([
+      fetchCloudRows("user_settings", userId),
+      fetchCloudRows("favorites", userId),
+      fetchCloudRows("reflections", userId),
+      fetchCloudRows("history", userId),
+      fetchCloudRows("custom_affirmations", userId),
+      fetchCloudRows("feedback_responses", userId),
+      fetchCloudRows("journal_encryption_keys", userId),
+    ]);
+  } catch {
+    throw new CloudRestoreError("cloudRestoreDataFetchFailed");
+  }
   return {
     settings: settings[0] || null,
     favorites,
@@ -1530,20 +1563,40 @@ function legacyPlaintextReflectionRows(rows) {
   return rows.filter((row) => !row?.reflection_ciphertext && row?.reflection_text);
 }
 
+async function localJournalKeyForRestore(userId) {
+  try {
+    return await getLocalJournalKey(userId);
+  } catch {
+    return null;
+  }
+}
+
 async function journalKeyForRestore(userId, cloudData, recoverySecret = "") {
   const encryptedRows = encryptedReflectionRows(cloudData.reflections);
   if (!encryptedRows.length) {
     return null;
   }
-  const localKey = await getLocalJournalKey(userId);
+  const localKey = await localJournalKeyForRestore(userId);
   if (localKey) {
     return localKey;
   }
-  if (!recoverySecret || !cloudData.journalKeyMetadata) {
-    throw new Error(translate("cloudRestoreRecoveryRequired"));
+  if (!cloudData.journalKeyMetadata) {
+    throw new CloudRestoreError("cloudRestoreKeyRecordMissing");
   }
-  const key = await unwrapJournalKey(recoverySecret, cloudData.journalKeyMetadata);
-  await storeLocalJournalKey(userId, key);
+  if (!recoverySecret) {
+    throw new CloudRestoreError("cloudRestoreRecoveryRequired");
+  }
+  let key;
+  try {
+    key = await unwrapJournalKey(recoverySecret, cloudData.journalKeyMetadata);
+  } catch {
+    throw new CloudRestoreError("cloudRestoreKeyUnlockFailed");
+  }
+  try {
+    await storeLocalJournalKey(userId, key);
+  } catch {
+    throw new CloudRestoreError("cloudRestoreLocalKeySaveFailed");
+  }
   encryptionMetadataProvider.markConfigured(userId);
   journalEncryptionConfigured = true;
   return key;
@@ -1787,9 +1840,12 @@ async function restoreFromCloud(recoverySecret = "") {
   try {
     const userId = authSession.user.id;
     const cloudData = await fetchCloudRestoreData(userId);
-    const needsRecoverySecret = encryptedReflectionRows(cloudData.reflections).length
-      && !(await getLocalJournalKey(userId))
-      && !recoverySecret;
+    const hasEncryptedReflections = Boolean(encryptedReflectionRows(cloudData.reflections).length);
+    const localJournalKey = await localJournalKeyForRestore(userId);
+    if (hasEncryptedReflections && !localJournalKey && !cloudData.journalKeyMetadata) {
+      throw new CloudRestoreError("cloudRestoreKeyRecordMissing");
+    }
+    const needsRecoverySecret = hasEncryptedReflections && !localJournalKey && !recoverySecret;
     if (needsRecoverySecret) {
       showCloudRestoreSecretForm();
       setCloudBackupStatus(translate("cloudRestoreRecoveryRequired"));
@@ -1804,8 +1860,7 @@ async function restoreFromCloud(recoverySecret = "") {
       : "";
     setCloudBackupStatus(`${translate("cloudRestoreSuccess")}${legacyMessage}`);
   } catch (error) {
-    const message = recoverySecret ? translate("cloudRestoreRecoveryFailed") : translate("cloudRestoreFailed");
-    setCloudBackupStatus(message);
+    setCloudBackupStatus(restoreErrorMessage(error, recoverySecret));
   } finally {
     elements.cloudRestoreButton.disabled = false;
     elements.confirmCloudRestoreButton.disabled = false;
