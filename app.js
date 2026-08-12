@@ -111,8 +111,8 @@ const translations = {
     preferredTime: "Preferred time",
     reminderComingSoon: "Daily reminders are planned for a future update. Your preferred reminder time is saved now and will be used when full reminder support becomes available.",
     accountHeading: "Account / Cloud Backup",
-    accountDescriptionSignedOut: "Your data is currently stored only on this device. Cloud backup setup is in progress.",
-    accountDescriptionSignedIn: "You are signed in. Cloud backup setup is in progress, but this app is not syncing saved data yet.",
+    accountDescriptionSignedOut: "Your data is currently stored only on this device. Sign in to prepare cloud backup.",
+    accountDescriptionSignedIn: "Cloud backup protects your saved data, but changes are not automatically synced between devices yet.",
     accountDescriptionRecovery: "Choose a new password for your account.",
     accountEmail: "Email",
     accountPassword: "Password",
@@ -125,7 +125,7 @@ const translations = {
     updatePassword: "Update password",
     signOut: "Sign out",
     signedInAs: "Signed in as: {email}",
-    accountNote: "Signing in does not upload or sync your saved data yet.",
+    accountNote: "Backups are manual for now. Your local app keeps working even without internet.",
     authUnavailable: "Account features need an internet connection. The local app still works on this device.",
     authEmailPasswordRequired: "Enter an email and password.",
     authEmailRequired: "Enter your email address.",
@@ -136,6 +136,14 @@ const translations = {
     authSignedOut: "Signed out.",
     authPasswordUpdated: "Password updated.",
     authSessionRestored: "Session restored.",
+    cloudBackupNow: "Back up now",
+    cloudBackupNever: "Last cloud backup: Never",
+    cloudBackupDate: "Last cloud backup: {date}",
+    cloudBackupSignedOut: "Sign in before backing up to the cloud.",
+    cloudBackupRunning: "Backing up your saved data...",
+    cloudBackupSuccess: "Cloud backup finished.",
+    cloudBackupFailed: "Cloud backup could not finish: {details}",
+    cloudBackupUnavailable: "Cloud backup is unavailable right now. Your local data is still safe on this device.",
     sendFeedbackHeading: "Send Feedback",
     sendFeedbackDescription: "Share a note, idea, or bug report using your email app.",
     sendFeedbackButton: "💬 Send Feedback",
@@ -295,8 +303,8 @@ const translations = {
     preferredTime: "Hora preferida",
     reminderComingSoon: "Los recordatorios diarios están planeados para una actualización futura. Tu hora preferida se guarda ahora y se usará cuando el soporte completo de recordatorios esté disponible.",
     accountHeading: "Cuenta / copia en la nube",
-    accountDescriptionSignedOut: "Tus datos se guardan actualmente solo en este dispositivo. La copia en la nube esta en preparacion.",
-    accountDescriptionSignedIn: "Has iniciado sesion. La copia en la nube esta en preparacion, pero esta app aun no sincroniza datos guardados.",
+    accountDescriptionSignedOut: "Tus datos se guardan actualmente solo en este dispositivo. Inicia sesion para preparar la copia en la nube.",
+    accountDescriptionSignedIn: "La copia en la nube protege tus datos guardados, pero los cambios todavia no se sincronizan automaticamente entre dispositivos.",
     accountDescriptionRecovery: "Elige una nueva contrasena para tu cuenta.",
     accountEmail: "Correo electronico",
     accountPassword: "Contrasena",
@@ -309,7 +317,7 @@ const translations = {
     updatePassword: "Actualizar contrasena",
     signOut: "Cerrar sesion",
     signedInAs: "Sesion iniciada como: {email}",
-    accountNote: "Iniciar sesion no sube ni sincroniza tus datos guardados todavia.",
+    accountNote: "Las copias son manuales por ahora. La app local sigue funcionando aun sin internet.",
     authUnavailable: "Las funciones de cuenta necesitan conexion a internet. La app local aun funciona en este dispositivo.",
     authEmailPasswordRequired: "Escribe un correo y una contrasena.",
     authEmailRequired: "Escribe tu correo electronico.",
@@ -320,6 +328,14 @@ const translations = {
     authSignedOut: "Sesion cerrada.",
     authPasswordUpdated: "Contrasena actualizada.",
     authSessionRestored: "Sesion restaurada.",
+    cloudBackupNow: "Hacer copia ahora",
+    cloudBackupNever: "Ultima copia en la nube: Nunca",
+    cloudBackupDate: "Ultima copia en la nube: {date}",
+    cloudBackupSignedOut: "Inicia sesion antes de hacer una copia en la nube.",
+    cloudBackupRunning: "Copiando tus datos guardados...",
+    cloudBackupSuccess: "Copia en la nube terminada.",
+    cloudBackupFailed: "La copia en la nube no pudo terminar: {details}",
+    cloudBackupUnavailable: "La copia en la nube no esta disponible ahora. Tus datos locales siguen seguros en este dispositivo.",
     sendFeedbackHeading: "Enviar comentarios",
     sendFeedbackDescription: "Comparte una nota, idea o reporte de error usando tu app de correo.",
     sendFeedbackButton: "💬 Enviar comentarios",
@@ -456,8 +472,10 @@ const defaultState = {
   feedbackResponses: {},
   backup: {
     lastExportedAt: "",
+    lastCloudBackedUpAt: "",
   },
   installation: {
+    id: "",
     seed: "",
   },
 };
@@ -536,9 +554,12 @@ const elements = {
   forgotPasswordButton: document.querySelector("#forgotPasswordButton"),
   updatePasswordButton: document.querySelector("#updatePasswordButton"),
   signedInEmail: document.querySelector("#signedInEmail"),
+  cloudBackupButton: document.querySelector("#cloudBackupButton"),
+  lastCloudBackupStatus: document.querySelector("#lastCloudBackupStatus"),
   signOutButton: document.querySelector("#signOutButton"),
   accountNote: document.querySelector("#accountNote"),
   authStatus: document.querySelector("#authStatus"),
+  cloudBackupStatus: document.querySelector("#cloudBackupStatus"),
   sendFeedbackButton: document.querySelector("#sendFeedbackButton"),
   backupDescription: document.querySelector("#backupDescription"),
   lastBackupStatus: document.querySelector("#lastBackupStatus"),
@@ -599,7 +620,8 @@ function loadState() {
   try {
     const saved = localSaveProvider.load();
     const migrated = migrateSavedState(saved, localSaveProvider.loadLegacyJournalSources());
-    if (!plainObject(saved).installation?.seed) {
+    const savedInstallation = plainObject(plainObject(saved).installation);
+    if (!savedInstallation.seed || !savedInstallation.id) {
       localSaveProvider.save(migrated);
     }
     return migrated;
@@ -643,6 +665,10 @@ function generateInstallationSeed() {
     }
   }
   return [...bytes].map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+function generateInstallationId() {
+  return `install_${generateInstallationSeed()}`;
 }
 
 function findDateInText(value) {
@@ -813,6 +839,9 @@ function migrateSavedState(saved, recoverySources = []) {
   const installationSeed = typeof savedInstallation.seed === "string" && savedInstallation.seed.trim()
     ? savedInstallation.seed
     : generateInstallationSeed();
+  const installationId = typeof savedInstallation.id === "string" && savedInstallation.id.trim()
+    ? savedInstallation.id
+    : generateInstallationId();
 
   return {
     ...structuredClone(defaultState),
@@ -827,7 +856,7 @@ function migrateSavedState(saved, recoverySources = []) {
     feedback: plainObject(savedState.feedback),
     feedbackResponses: plainObject(savedState.feedbackResponses),
     backup: { ...defaultState.backup, ...plainObject(savedState.backup) },
-    installation: { ...defaultState.installation, ...savedInstallation, seed: installationSeed },
+    installation: { ...defaultState.installation, ...savedInstallation, id: installationId, seed: installationSeed },
   };
 }
 
@@ -917,9 +946,37 @@ function renderBackupStatus() {
   }
 }
 
+function cloudBackupDateLabel(value) {
+  if (!value) {
+    return translate("cloudBackupNever");
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return translate("cloudBackupNever");
+  }
+  return translate("cloudBackupDate", {
+    date: new Intl.DateTimeFormat(currentLanguage(), {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(parsed),
+  });
+}
+
+function renderCloudBackupStatus() {
+  if (elements.lastCloudBackupStatus) {
+    elements.lastCloudBackupStatus.textContent = cloudBackupDateLabel(state.backup?.lastCloudBackedUpAt);
+  }
+}
+
 function setBackupStatus(message) {
   if (elements.backupStatus) {
     elements.backupStatus.textContent = message || "";
+  }
+}
+
+function setCloudBackupStatus(message) {
+  if (elements.cloudBackupStatus) {
+    elements.cloudBackupStatus.textContent = message || "";
   }
 }
 
@@ -940,6 +997,201 @@ function backupPayload(exportedAt) {
     data,
     journals: data.reflections,
   };
+}
+
+function ensureInstallationId() {
+  state = migrateSavedState(state);
+  if (!state.installation.id) {
+    state.installation = { ...state.installation, id: generateInstallationId() };
+    saveState();
+  }
+  return state.installation.id;
+}
+
+function cloudSettingsRow(userId, settings) {
+  return {
+    user_id: userId,
+    theme: settings.theme,
+    language: settings.language,
+    text_size: settings.textSize,
+    high_contrast: Boolean(settings.highContrast),
+    read_aloud: Boolean(settings.readAloud),
+    speech_rate: settings.speechRate,
+    categories: Array.isArray(settings.categories) ? settings.categories : [],
+    reminder_enabled: Boolean(settings.reminderEnabled),
+    reminder_time: settings.reminderTime,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function cloudFavoriteRows(userId, favoriteIds) {
+  const updatedAt = new Date().toISOString();
+  return uniqueByValue(favoriteIds).map((affirmationId) => ({
+    user_id: userId,
+    affirmation_id: affirmationId,
+    updated_at: updatedAt,
+  }));
+}
+
+function cloudReflectionRows(userId, reflections) {
+  const updatedAt = new Date().toISOString();
+  return Object.values(reflections || {})
+    .filter((entry) => entry?.id && entry?.date)
+    .map((entry) => ({
+      user_id: userId,
+      id: entry.id,
+      date: entry.date,
+      affirmation_id: entry.affirmationId || "",
+      category: entry.category || "",
+      affirmation: entry.affirmation || "",
+      text: entry.text || "",
+      updated_at: entry.updatedAt || updatedAt,
+    }));
+}
+
+function cloudHistoryRows(userId, installationId, history) {
+  const updatedAt = new Date().toISOString();
+  return Object.values(history || {})
+    .filter((entry) => entry?.date)
+    .map((entry) => ({
+      user_id: userId,
+      installation_id: installationId,
+      date: entry.date,
+      affirmation_id: entry.affirmationId || "",
+      category: entry.category || "",
+      affirmation: entry.affirmation || "",
+      updated_at: entry.updatedAt || updatedAt,
+    }));
+}
+
+function stableCustomAffirmationId(item, index) {
+  return item?.id || `custom_${seededRandom(`${item?.category || ""}|${item?.text || ""}|${index}`)().toString(36).slice(2, 12)}`;
+}
+
+function cloudCustomAffirmationRows(userId, customAffirmations) {
+  const updatedAt = new Date().toISOString();
+  return (customAffirmations || [])
+    .filter((item) => item?.text && item?.category)
+    .map((item, index) => ({
+      user_id: userId,
+      id: stableCustomAffirmationId(item, index),
+      text: item.text,
+      category: item.category,
+      updated_at: item.updatedAt || updatedAt,
+    }));
+}
+
+function cloudFeedbackResponseRows(userId, feedbackResponses) {
+  const updatedAt = new Date().toISOString();
+  return Object.values(feedbackResponses || {})
+    .filter((entry) => entry?.id && entry?.date && entry?.affirmationId && entry?.response)
+    .map((entry) => ({
+      user_id: userId,
+      id: entry.id,
+      date: entry.date,
+      affirmation_id: entry.affirmationId,
+      category: entry.category || "",
+      response: entry.response,
+      updated_at: entry.updatedAt || updatedAt,
+    }));
+}
+
+function supabaseInList(values) {
+  return `(${values.map((value) => `"${String(value).replaceAll('"', '\\"')}"`).join(",")})`;
+}
+
+async function recordCloudStep(failures, label, action) {
+  const { error } = await action();
+  if (error) {
+    failures.push(`${label}: ${error.message || "unavailable"}`);
+  }
+}
+
+async function backupFavoritesToCloud(userId, favoriteIds, failures) {
+  const rows = cloudFavoriteRows(userId, favoriteIds);
+  if (rows.length) {
+    await recordCloudStep(failures, "favorites", () => supabaseClient
+      .from("favorites")
+      .upsert(rows, { onConflict: "user_id,affirmation_id" }));
+    await recordCloudStep(failures, "removed favorites", () => supabaseClient
+      .from("favorites")
+      .delete()
+      .eq("user_id", userId)
+      .not("affirmation_id", "in", supabaseInList(favoriteIds)));
+  } else {
+    await recordCloudStep(failures, "favorites", () => supabaseClient
+      .from("favorites")
+      .delete()
+      .eq("user_id", userId));
+  }
+}
+
+async function backupLocalDataToCloud(userId) {
+  const installationId = ensureInstallationId();
+  const localState = migrateSavedState(localSaveProvider.load());
+  const failures = [];
+
+  await recordCloudStep(failures, "settings", () => supabaseClient
+    .from("user_settings")
+    .upsert(cloudSettingsRow(userId, localState.settings), { onConflict: "user_id" }));
+
+  await backupFavoritesToCloud(userId, localState.favorites, failures);
+
+  const reflectionRows = cloudReflectionRows(userId, localState.reflections);
+  if (reflectionRows.length) {
+    await recordCloudStep(failures, "reflections", () => supabaseClient
+      .from("reflections")
+      .upsert(reflectionRows, { onConflict: "user_id,id" }));
+  }
+
+  const historyRows = cloudHistoryRows(userId, installationId, localState.history);
+  if (historyRows.length) {
+    await recordCloudStep(failures, "history", () => supabaseClient
+      .from("history")
+      .upsert(historyRows, { onConflict: "user_id,installation_id,date" }));
+  }
+
+  const customRows = cloudCustomAffirmationRows(userId, localState.customAffirmations);
+  if (customRows.length) {
+    await recordCloudStep(failures, "custom affirmations", () => supabaseClient
+      .from("custom_affirmations")
+      .upsert(customRows, { onConflict: "user_id,id" }));
+  }
+
+  const feedbackRows = cloudFeedbackResponseRows(userId, localState.feedbackResponses);
+  if (feedbackRows.length) {
+    await recordCloudStep(failures, "feedback", () => supabaseClient
+      .from("feedback_responses")
+      .upsert(feedbackRows, { onConflict: "user_id,id" }));
+  }
+
+  return failures;
+}
+
+async function backUpNow() {
+  if (!supabaseClient || !authSession?.user?.id) {
+    setCloudBackupStatus(translate("cloudBackupSignedOut"));
+    return;
+  }
+
+  elements.cloudBackupButton.disabled = true;
+  setCloudBackupStatus(translate("cloudBackupRunning"));
+
+  try {
+    const failures = await backupLocalDataToCloud(authSession.user.id);
+    if (failures.length) {
+      setCloudBackupStatus(translate("cloudBackupFailed", { details: failures.join("; ") }));
+      return;
+    }
+    state.backup = { ...plainObject(state.backup), lastCloudBackedUpAt: new Date().toISOString() };
+    saveState();
+    renderCloudBackupStatus();
+    setCloudBackupStatus(translate("cloudBackupSuccess"));
+  } catch {
+    setCloudBackupStatus(translate("cloudBackupUnavailable"));
+  } finally {
+    elements.cloudBackupButton.disabled = false;
+  }
 }
 
 function exportMyData() {
@@ -1091,6 +1343,7 @@ function renderAuthState() {
   elements.signInButton.hidden = authRecoveryMode;
   elements.forgotPasswordButton.hidden = authRecoveryMode;
   elements.updatePasswordButton.hidden = !authRecoveryMode;
+  renderCloudBackupStatus();
 }
 
 function renderAuthUnavailable() {
@@ -1104,6 +1357,7 @@ function renderAuthUnavailable() {
     elements.forgotPasswordButton,
     elements.updatePasswordButton,
     elements.signOutButton,
+    elements.cloudBackupButton,
   ].forEach((button) => {
     button.disabled = true;
   });
@@ -2394,6 +2648,7 @@ function applyTranslations() {
   elements.signInButton.textContent = translate("signIn");
   elements.forgotPasswordButton.textContent = translate("forgotPassword");
   elements.updatePasswordButton.textContent = translate("updatePassword");
+  elements.cloudBackupButton.textContent = translate("cloudBackupNow");
   elements.signOutButton.textContent = translate("signOut");
   renderAuthState();
   setText("#sendFeedbackHeading", translate("sendFeedbackHeading"));
@@ -2561,6 +2816,7 @@ function bindEvents() {
   elements.forgotPasswordButton.addEventListener("click", sendPasswordReset);
   elements.updatePasswordButton.addEventListener("click", updatePassword);
   elements.signOutButton.addEventListener("click", signOut);
+  elements.cloudBackupButton.addEventListener("click", backUpNow);
   elements.sendFeedbackButton.addEventListener("click", (event) => {
     event.preventDefault();
     openFeedbackEmail();

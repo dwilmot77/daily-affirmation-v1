@@ -623,6 +623,7 @@ button.calendar-day:hover {
 .result-actions button,
 .account-actions button,
 #signOutButton,
+#cloudBackupButton,
 .settings-card > .button-link,
 .settings-card > button,
 .danger-zone button {

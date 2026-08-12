@@ -275,11 +275,14 @@
 
           <div id="accountSignedInPanel" hidden>
             <p id="signedInEmail">Signed in as: </p>
+            <button type="button" id="cloudBackupButton">Back up now</button>
+            <p class="field-note" id="lastCloudBackupStatus">Last cloud backup: Never</p>
             <button type="button" id="signOutButton">Sign out</button>
           </div>
 
           <p class="field-note" id="accountNote">Signing in does not upload or sync your saved data yet.</p>
           <p class="save-status" id="authStatus" role="status" aria-live="polite"></p>
+          <p class="save-status" id="cloudBackupStatus" role="status" aria-live="polite"></p>
         </section>
 
         <section class="settings-card" aria-labelledby="sendFeedbackHeading">
