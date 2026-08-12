@@ -1025,11 +1025,9 @@ function cloudSettingsRow(userId, settings) {
 }
 
 function cloudFavoriteRows(userId, favoriteIds) {
-  const updatedAt = new Date().toISOString();
   return uniqueByValue(favoriteIds).map((affirmationId) => ({
     user_id: userId,
     affirmation_id: affirmationId,
-    updated_at: updatedAt,
   }));
 }
 
