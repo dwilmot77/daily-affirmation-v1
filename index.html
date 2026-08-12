@@ -242,6 +242,18 @@
               </form>
             </div>
             <button type="button" id="cloudBackupButton">Back up now</button>
+            <button type="button" id="cloudRestoreButton">Restore from cloud</button>
+            <form class="journal-encryption-form" id="cloudRestoreForm" hidden>
+              <label for="cloudRestoreSecret" id="cloudRestoreSecretLabel">Journal recovery secret</label>
+              <input id="cloudRestoreSecret" type="password" autocomplete="current-password" />
+              <p class="field-note" id="cloudRestoreSecretNote">
+                Enter your recovery secret to unlock encrypted journal entries before restoring them to this device.
+              </p>
+              <div class="account-actions" aria-label="Cloud restore actions">
+                <button type="button" id="confirmCloudRestoreButton">Restore with recovery secret</button>
+                <button type="button" id="cancelCloudRestoreButton">Cancel</button>
+              </div>
+            </form>
             <p class="field-note" id="lastCloudBackupStatus">Last cloud backup: Never</p>
             <button type="button" id="signOutButton">Sign out</button>
           </div>

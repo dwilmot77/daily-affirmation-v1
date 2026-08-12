@@ -693,6 +693,7 @@ button.calendar-day:hover {
 .account-form,
 .account-actions,
 .journal-encryption-form,
+.cloud-restore-form,
 .journal-encryption-panel,
 #accountSignedInPanel {
   display: grid;
@@ -704,6 +705,7 @@ button.calendar-day:hover {
 #showJournalEncryptionSetupButton,
 #signOutButton,
 #cloudBackupButton,
+#cloudRestoreButton,
 .settings-card > .button-link,
 .settings-card > button,
 .danger-zone button {

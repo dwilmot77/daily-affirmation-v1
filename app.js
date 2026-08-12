@@ -11,6 +11,7 @@ const DEFAULT_LANGUAGE = "en";
 const SUPPORTED_LANGUAGES = ["en", "es"];
 const RECENT_AFFIRMATION_WINDOW = 14;
 const ENCRYPTION_STORAGE_KEY = "dailyAffirmation.encryption.v1";
+const RESTORE_SAFETY_STORAGE_KEY = "dailyAffirmation.restoreSafety.v1";
 const ENCRYPTION_DB_NAME = "dailyAffirmation.encryption";
 const JOURNAL_KEY_STORE = "journalKeys";
 const JOURNAL_ENCRYPTION_VERSION = 1;
@@ -153,6 +154,19 @@ const translations = {
     cloudBackupSuccess: "Cloud backup finished.",
     cloudBackupFailed: "Cloud backup could not finish: {details}",
     cloudBackupUnavailable: "Cloud backup is unavailable right now. Your local data is still safe on this device.",
+    cloudRestore: "Restore from cloud",
+    cloudRestoreRunning: "Restoring cloud data...",
+    cloudRestoreSuccess: "Cloud restore finished.",
+    cloudRestoreFailed: "Cloud restore could not finish. Your local data is unchanged.",
+    cloudRestoreSignedOut: "Sign in before restoring from the cloud.",
+    cloudRestoreConfirm: "Restore saved cloud data to this device? Cloud data will be merged with what is already here.",
+    cloudRestoreConfirmWithLocal: "This device already has saved Daily Affirmation data. Restore will merge cloud data with this device and will not delete local-only entries. Continue?",
+    cloudRestoreRecoveryRequired: "Enter your recovery secret to restore encrypted journal entries.",
+    cloudRestoreSecret: "Journal recovery secret",
+    cloudRestoreSecretNote: "Enter your recovery secret to unlock encrypted journal entries before restoring them to this device.",
+    cloudRestoreWithSecret: "Restore with recovery secret",
+    cloudRestoreRecoveryFailed: "The recovery secret could not unlock your journals. Your local journals are unchanged.",
+    cloudRestoreLegacySkipped: "Skipped {count} legacy plaintext journal rows.",
     journalEncryptionStatusUnset: "Journal cloud encryption: Not set up",
     journalEncryptionStatusProtected: "Journal cloud encryption: Protected",
     journalEncryptionDescriptionUnset: "Set up a recovery secret so journal text is encrypted on this device before cloud backup.",
@@ -363,6 +377,19 @@ const translations = {
     cloudBackupSuccess: "Copia en la nube terminada.",
     cloudBackupFailed: "La copia en la nube no pudo terminar: {details}",
     cloudBackupUnavailable: "La copia en la nube no esta disponible ahora. Tus datos locales siguen seguros en este dispositivo.",
+    cloudRestore: "Restaurar desde la nube",
+    cloudRestoreRunning: "Restaurando datos de la nube...",
+    cloudRestoreSuccess: "Restauracion desde la nube terminada.",
+    cloudRestoreFailed: "No se pudo terminar la restauracion desde la nube. Tus datos locales no cambiaron.",
+    cloudRestoreSignedOut: "Inicia sesion antes de restaurar desde la nube.",
+    cloudRestoreConfirm: "Restaurar datos guardados en la nube en este dispositivo? Los datos de la nube se combinaran con lo que ya esta aqui.",
+    cloudRestoreConfirmWithLocal: "Este dispositivo ya tiene datos guardados de Daily Affirmation. La restauracion combinara datos de la nube con este dispositivo y no borrara entradas solo locales. Continuar?",
+    cloudRestoreRecoveryRequired: "Escribe tu secreto de recuperacion para restaurar entradas cifradas del diario.",
+    cloudRestoreSecret: "Secreto de recuperacion del diario",
+    cloudRestoreSecretNote: "Escribe tu secreto de recuperacion para desbloquear entradas cifradas del diario antes de restaurarlas en este dispositivo.",
+    cloudRestoreWithSecret: "Restaurar con secreto de recuperacion",
+    cloudRestoreRecoveryFailed: "El secreto de recuperacion no pudo desbloquear tus diarios. Tus diarios locales no cambiaron.",
+    cloudRestoreLegacySkipped: "Se omitieron {count} filas antiguas de diario en texto sin cifrar.",
     journalEncryptionStatusUnset: "Cifrado del diario en la nube: No configurado",
     journalEncryptionStatusProtected: "Cifrado del diario en la nube: Protegido",
     journalEncryptionDescriptionUnset: "Configura un secreto de recuperacion para cifrar el texto del diario en este dispositivo antes de la copia en la nube.",
@@ -615,6 +642,13 @@ const elements = {
   saveJournalEncryptionButton: document.querySelector("#saveJournalEncryptionButton"),
   cancelJournalEncryptionButton: document.querySelector("#cancelJournalEncryptionButton"),
   cloudBackupButton: document.querySelector("#cloudBackupButton"),
+  cloudRestoreButton: document.querySelector("#cloudRestoreButton"),
+  cloudRestoreForm: document.querySelector("#cloudRestoreForm"),
+  cloudRestoreSecretLabel: document.querySelector("#cloudRestoreSecretLabel"),
+  cloudRestoreSecret: document.querySelector("#cloudRestoreSecret"),
+  cloudRestoreSecretNote: document.querySelector("#cloudRestoreSecretNote"),
+  confirmCloudRestoreButton: document.querySelector("#confirmCloudRestoreButton"),
+  cancelCloudRestoreButton: document.querySelector("#cancelCloudRestoreButton"),
   lastCloudBackupStatus: document.querySelector("#lastCloudBackupStatus"),
   signOutButton: document.querySelector("#signOutButton"),
   accountNote: document.querySelector("#accountNote"),
@@ -859,6 +893,15 @@ async function encryptReflectionText(journalKey, text) {
     ciphertext: bytesToBase64(new Uint8Array(ciphertext)),
     iv: bytesToBase64(iv),
   };
+}
+
+async function decryptReflectionText(journalKey, ciphertext, iv) {
+  const plaintext = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: base64ToBytes(iv) },
+    journalKey,
+    base64ToBytes(ciphertext),
+  );
+  return new TextDecoder().decode(plaintext);
 }
 
 function normalizeHistory(history) {
@@ -1429,6 +1472,367 @@ async function backUpNow() {
   }
 }
 
+function hasMeaningfulLocalData(localState = state) {
+  const current = migrateSavedState(localState);
+  return Boolean(
+    current.favorites.length
+    || Object.keys(current.reflections || {}).length
+    || Object.keys(current.history || {}).length
+    || current.customAffirmations.length
+    || Object.keys(current.feedbackResponses || {}).length,
+  );
+}
+
+function confirmCloudRestore() {
+  const message = hasMeaningfulLocalData()
+    ? translate("cloudRestoreConfirmWithLocal")
+    : translate("cloudRestoreConfirm");
+  return window.confirm(message);
+}
+
+async function fetchCloudRows(table, userId) {
+  const { data, error } = await supabaseClient
+    .from(table)
+    .select("*")
+    .eq("user_id", userId);
+  if (error) {
+    throw error;
+  }
+  return Array.isArray(data) ? data : data ? [data] : [];
+}
+
+async function fetchCloudRestoreData(userId) {
+  const [settings, favorites, reflections, history, customAffirmations, feedbackResponses, keyRows] = await Promise.all([
+    fetchCloudRows("user_settings", userId),
+    fetchCloudRows("favorites", userId),
+    fetchCloudRows("reflections", userId),
+    fetchCloudRows("history", userId),
+    fetchCloudRows("custom_affirmations", userId),
+    fetchCloudRows("feedback_responses", userId),
+    fetchCloudRows("journal_encryption_keys", userId),
+  ]);
+  return {
+    settings: settings[0] || null,
+    favorites,
+    reflections,
+    history,
+    customAffirmations,
+    feedbackResponses,
+    journalKeyMetadata: keyRows[0] || null,
+  };
+}
+
+function encryptedReflectionRows(rows) {
+  return rows.filter((row) => row?.reflection_ciphertext && row?.reflection_iv);
+}
+
+function legacyPlaintextReflectionRows(rows) {
+  return rows.filter((row) => !row?.reflection_ciphertext && row?.reflection_text);
+}
+
+async function journalKeyForRestore(userId, cloudData, recoverySecret = "") {
+  const encryptedRows = encryptedReflectionRows(cloudData.reflections);
+  if (!encryptedRows.length) {
+    return null;
+  }
+  const localKey = await getLocalJournalKey(userId);
+  if (localKey) {
+    return localKey;
+  }
+  if (!recoverySecret || !cloudData.journalKeyMetadata) {
+    throw new Error(translate("cloudRestoreRecoveryRequired"));
+  }
+  const key = await unwrapJournalKey(recoverySecret, cloudData.journalKeyMetadata);
+  await storeLocalJournalKey(userId, key);
+  encryptionMetadataProvider.markConfigured(userId);
+  journalEncryptionConfigured = true;
+  return key;
+}
+
+function cloudSettingsToLocal(row, currentSettings) {
+  if (!row) {
+    return currentSettings;
+  }
+  return {
+    ...currentSettings,
+    theme: row.theme ?? currentSettings.theme,
+    language: row.language ?? currentSettings.language,
+    textSize: row.text_size ?? currentSettings.textSize,
+    highContrast: row.high_contrast ?? currentSettings.highContrast,
+    readAloud: row.read_aloud ?? currentSettings.readAloud,
+    speechRate: row.speech_rate ?? currentSettings.speechRate,
+    categories: Array.isArray(row.categories) ? row.categories : currentSettings.categories,
+    reminderEnabled: row.reminder_enabled ?? currentSettings.reminderEnabled,
+    reminderTime: row.reminder_time ?? currentSettings.reminderTime,
+    voiceURI: currentSettings.voiceURI,
+  };
+}
+
+function validTime(value) {
+  const parsed = value ? new Date(value).getTime() : NaN;
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function newerByUpdatedAt(localEntry, cloudEntry) {
+  const localTime = validTime(localEntry?.updatedAt);
+  const cloudTime = validTime(cloudEntry?.updatedAt);
+  if (!localEntry) {
+    return cloudEntry;
+  }
+  if (!cloudEntry) {
+    return localEntry;
+  }
+  if (cloudTime > localTime) {
+    return cloudEntry;
+  }
+  return localEntry;
+}
+
+async function restoreReflectionRows(rows, journalKey) {
+  const restored = {};
+  const legacyRows = legacyPlaintextReflectionRows(rows);
+  for (const row of encryptedReflectionRows(rows)) {
+    if (row.encryption_version && Number(row.encryption_version) !== JOURNAL_ENCRYPTION_VERSION) {
+      throw new Error("Unsupported journal encryption version.");
+    }
+    const text = await decryptReflectionText(journalKey, row.reflection_ciphertext, row.reflection_iv);
+    const id = row.id || `${row.date || ""}::${row.affirmation_id || ""}`;
+    if (!id || !row.date) {
+      continue;
+    }
+    restored[id] = {
+      id,
+      date: row.date,
+      affirmationId: row.affirmation_id || "",
+      category: row.category || "",
+      affirmation: row.affirmation || "",
+      text,
+      updatedAt: row.updated_at || "",
+    };
+  }
+  return { restored, legacyCount: legacyRows.length };
+}
+
+function mergeReflectionMaps(currentReflections, cloudReflections) {
+  const merged = { ...plainObject(currentReflections) };
+  Object.entries(cloudReflections || {}).forEach(([id, cloudEntry]) => {
+    merged[id] = newerByUpdatedAt(merged[id], cloudEntry);
+  });
+  return merged;
+}
+
+function mergeCloudHistory(currentHistory, rows) {
+  const merged = normalizeHistory(currentHistory);
+  const byDate = new Map();
+  rows.forEach((row) => {
+    if (!row?.date) {
+      return;
+    }
+    const candidate = {
+      date: row.date,
+      affirmationId: row.affirmation_id || "",
+      category: row.category || "",
+      affirmation: row.affirmation || "",
+      updatedAt: row.updated_at || "",
+    };
+    const existing = byDate.get(row.date);
+    if (!existing || validTime(candidate.updatedAt) > validTime(existing.updatedAt)) {
+      byDate.set(row.date, candidate);
+      return;
+    }
+    if (validTime(candidate.updatedAt) === validTime(existing.updatedAt)) {
+      const currentKey = `${candidate.category}|${candidate.affirmationId}|${candidate.affirmation}`;
+      const existingKey = `${existing.category}|${existing.affirmationId}|${existing.affirmation}`;
+      if (currentKey < existingKey) {
+        byDate.set(row.date, candidate);
+      }
+    }
+  });
+  byDate.forEach((cloudEntry, date) => {
+    merged[date] = newerByUpdatedAt(merged[date], cloudEntry);
+  });
+  return normalizeHistory(merged);
+}
+
+function mergeCloudCustomAffirmations(currentItems, rows) {
+  const byId = new Map();
+  (currentItems || []).forEach((item) => {
+    if (item?.id) {
+      byId.set(item.id, item);
+    }
+  });
+  rows.forEach((row) => {
+    if (!row?.id) {
+      return;
+    }
+    const cloudItem = {
+      id: row.id,
+      text: row.text || "",
+      category: row.category || "",
+      updatedAt: row.updated_at || "",
+    };
+    byId.set(row.id, newerByUpdatedAt(byId.get(row.id), cloudItem));
+  });
+  return [...byId.values()];
+}
+
+function mergeCloudFeedbackResponses(currentResponses, rows) {
+  const merged = { ...plainObject(currentResponses) };
+  rows.forEach((row) => {
+    if (!row?.id) {
+      return;
+    }
+    const cloudEntry = {
+      id: row.id,
+      date: row.date || "",
+      affirmationId: row.affirmation_id || "",
+      category: row.category || "",
+      response: row.response || "",
+      updatedAt: row.updated_at || "",
+    };
+    merged[row.id] = newerByUpdatedAt(merged[row.id], cloudEntry);
+  });
+  return merged;
+}
+
+function rebuildFeedbackFromResponses(feedbackResponses) {
+  const rebuilt = {};
+  Object.values(feedbackResponses || {}).forEach((entry) => {
+    if (!entry?.category || !entry?.response) {
+      return;
+    }
+    rebuilt[entry.category] = rebuilt[entry.category] || {};
+    const metricKey = entry.response === "not-today" ? "notToday" : entry.response;
+    rebuilt[entry.category][metricKey] = (rebuilt[entry.category][metricKey] || 0) + 1;
+  });
+  return rebuilt;
+}
+
+async function buildCloudRestoreState(currentState, cloudData, journalKey) {
+  const current = migrateSavedState(currentState);
+  const { restored: restoredReflections, legacyCount } = await restoreReflectionRows(cloudData.reflections, journalKey);
+  const feedbackResponses = mergeCloudFeedbackResponses(current.feedbackResponses, cloudData.feedbackResponses);
+  return {
+    legacyPlaintextCount: legacyCount,
+    mergedState: migrateSavedState({
+      ...current,
+      settings: cloudSettingsToLocal(cloudData.settings, current.settings),
+      daily: current.daily,
+      favorites: uniqueByValue([
+        ...current.favorites,
+        ...cloudData.favorites.map((row) => row?.affirmation_id).filter(Boolean),
+      ]),
+      reflections: mergeReflectionMaps(current.reflections, restoredReflections),
+      history: mergeCloudHistory(current.history, cloudData.history),
+      customAffirmations: mergeCloudCustomAffirmations(current.customAffirmations, cloudData.customAffirmations),
+      feedbackResponses,
+      feedback: rebuildFeedbackFromResponses(feedbackResponses),
+      backup: current.backup,
+      installation: current.installation,
+    }),
+  };
+}
+
+function createRestoreSafetySnapshot(currentState) {
+  localStorage.setItem(RESTORE_SAFETY_STORAGE_KEY, JSON.stringify({
+    createdAt: new Date().toISOString(),
+    storageKey: STORAGE_KEY,
+    state: currentState,
+  }));
+}
+
+function clearRestoreSafetySnapshot() {
+  localStorage.removeItem(RESTORE_SAFETY_STORAGE_KEY);
+}
+
+function applyRestoredState(nextState) {
+  const previousState = state;
+  createRestoreSafetySnapshot(previousState);
+  state = nextState;
+  saveState();
+  applySettings();
+  syncSettingsForm();
+  renderCategoryControls();
+  renderBackupStatus();
+  renderCloudBackupStatus();
+  renderJournalEncryptionStatus();
+  renderFavorites();
+  renderReflections();
+  renderHistory();
+  renderSearch();
+  setAffirmation(getTodaysAffirmation(), { skipBreath: true });
+  clearRestoreSafetySnapshot();
+}
+
+function hideCloudRestoreSecretForm() {
+  elements.cloudRestoreForm.hidden = true;
+  elements.cloudRestoreSecret.value = "";
+}
+
+function showCloudRestoreSecretForm() {
+  elements.cloudRestoreForm.hidden = false;
+  elements.cloudRestoreSecret.value = "";
+  elements.cloudRestoreSecret.focus();
+}
+
+async function restoreFromCloud(recoverySecret = "") {
+  if (!supabaseClient || !authSession?.user?.id) {
+    setCloudBackupStatus(translate("cloudRestoreSignedOut"));
+    return;
+  }
+  elements.cloudRestoreButton.disabled = true;
+  elements.confirmCloudRestoreButton.disabled = true;
+  setCloudBackupStatus(translate("cloudRestoreRunning"));
+
+  try {
+    const userId = authSession.user.id;
+    const cloudData = await fetchCloudRestoreData(userId);
+    const needsRecoverySecret = encryptedReflectionRows(cloudData.reflections).length
+      && !(await getLocalJournalKey(userId))
+      && !recoverySecret;
+    if (needsRecoverySecret) {
+      showCloudRestoreSecretForm();
+      setCloudBackupStatus(translate("cloudRestoreRecoveryRequired"));
+      return;
+    }
+    const journalKey = await journalKeyForRestore(userId, cloudData, recoverySecret);
+    const { mergedState, legacyPlaintextCount } = await buildCloudRestoreState(state, cloudData, journalKey);
+    applyRestoredState(mergedState);
+    hideCloudRestoreSecretForm();
+    const legacyMessage = legacyPlaintextCount
+      ? ` ${translate("cloudRestoreLegacySkipped", { count: String(legacyPlaintextCount) })}`
+      : "";
+    setCloudBackupStatus(`${translate("cloudRestoreSuccess")}${legacyMessage}`);
+  } catch (error) {
+    const message = recoverySecret ? translate("cloudRestoreRecoveryFailed") : translate("cloudRestoreFailed");
+    setCloudBackupStatus(message);
+  } finally {
+    elements.cloudRestoreButton.disabled = false;
+    elements.confirmCloudRestoreButton.disabled = false;
+    elements.cloudRestoreSecret.value = "";
+  }
+}
+
+async function startCloudRestore() {
+  if (!supabaseClient || !authSession?.user?.id) {
+    setCloudBackupStatus(translate("cloudRestoreSignedOut"));
+    return;
+  }
+  if (!confirmCloudRestore()) {
+    return;
+  }
+  await restoreFromCloud();
+}
+
+async function confirmCloudRestoreWithSecret() {
+  const secret = elements.cloudRestoreSecret.value;
+  if (!secret) {
+    setCloudBackupStatus(translate("cloudRestoreRecoveryRequired"));
+    return;
+  }
+  await restoreFromCloud(secret);
+}
+
 function exportMyData() {
   const exportedAt = new Date().toISOString();
   state.backup = { ...plainObject(state.backup), lastExportedAt: exportedAt };
@@ -1699,6 +2103,9 @@ function renderAuthUnavailable() {
     elements.saveJournalEncryptionButton,
     elements.cancelJournalEncryptionButton,
     elements.cloudBackupButton,
+    elements.cloudRestoreButton,
+    elements.confirmCloudRestoreButton,
+    elements.cancelCloudRestoreButton,
   ].forEach((button) => {
     button.disabled = true;
   });
@@ -3034,6 +3441,12 @@ function applyTranslations() {
   elements.forgotPasswordButton.textContent = translate("forgotPassword");
   elements.updatePasswordButton.textContent = translate("updatePassword");
   elements.cloudBackupButton.textContent = translate("cloudBackupNow");
+  elements.cloudRestoreButton.textContent = translate("cloudRestore");
+  elements.cloudRestoreForm.querySelector(".account-actions").setAttribute("aria-label", translate("cloudRestore"));
+  elements.cloudRestoreSecretLabel.textContent = translate("cloudRestoreSecret");
+  elements.cloudRestoreSecretNote.textContent = translate("cloudRestoreSecretNote");
+  elements.confirmCloudRestoreButton.textContent = translate("cloudRestoreWithSecret");
+  elements.cancelCloudRestoreButton.textContent = translate("cancel");
   elements.signOutButton.textContent = translate("signOut");
   renderAuthState();
   renderJournalEncryptionStatus();
@@ -3210,6 +3623,10 @@ function bindEvents() {
   elements.cancelJournalEncryptionButton.addEventListener("click", cancelJournalEncryptionSetup);
   elements.journalEncryptionForm.addEventListener("submit", (event) => event.preventDefault());
   elements.cloudBackupButton.addEventListener("click", backUpNow);
+  elements.cloudRestoreButton.addEventListener("click", startCloudRestore);
+  elements.confirmCloudRestoreButton.addEventListener("click", confirmCloudRestoreWithSecret);
+  elements.cancelCloudRestoreButton.addEventListener("click", hideCloudRestoreSecretForm);
+  elements.cloudRestoreForm.addEventListener("submit", (event) => event.preventDefault());
   elements.sendFeedbackButton.addEventListener("click", (event) => {
     event.preventDefault();
     openFeedbackEmail();
