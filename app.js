@@ -1397,10 +1397,6 @@ function cloudFeedbackResponseRows(userId, feedbackResponses) {
     }));
 }
 
-function supabaseInList(values) {
-  return `(${values.map((value) => `"${String(value).replaceAll('"', '\\"')}"`).join(",")})`;
-}
-
 async function recordCloudStep(failures, label, action) {
   const { error } = await action();
   if (error) {
@@ -1408,22 +1404,39 @@ async function recordCloudStep(failures, label, action) {
   }
 }
 
-async function backupFavoritesToCloud(userId, favoriteIds, failures) {
-  const rows = cloudFavoriteRows(userId, favoriteIds);
-  if (rows.length) {
-    await recordCloudStep(failures, "favorites", () => supabaseClient
-      .from("favorites")
-      .upsert(rows, { onConflict: "user_id,affirmation_id" }));
-    await recordCloudStep(failures, "removed favorites", () => supabaseClient
-      .from("favorites")
-      .delete()
-      .eq("user_id", userId)
-      .not("affirmation_id", "in", supabaseInList(favoriteIds)));
-  } else {
-    await recordCloudStep(failures, "favorites", () => supabaseClient
-      .from("favorites")
+async function deleteExistingCloudBackupRows(userId, failures) {
+  const tables = [
+    ["favorites", "favorites"],
+    ["reflections", "reflections"],
+    ["history", "history"],
+    ["custom_affirmations", "custom affirmations"],
+    ["feedback_responses", "feedback"],
+  ];
+
+  for (const [table, label] of tables) {
+    await recordCloudStep(failures, `clear ${label}`, () => supabaseClient
+      .from(table)
       .delete()
       .eq("user_id", userId));
+  }
+}
+
+async function uploadReplacementCloudRows(rowsByTable, failures) {
+  const uploadSteps = [
+    ["favorites", "favorites", rowsByTable.favorites, "user_id,affirmation_id"],
+    ["reflections", "reflections", rowsByTable.reflections, "user_id,id"],
+    ["history", "history", rowsByTable.history, "user_id,installation_id,date"],
+    ["custom_affirmations", "custom affirmations", rowsByTable.customAffirmations, "user_id,id"],
+    ["feedback_responses", "feedback", rowsByTable.feedbackResponses, "user_id,id"],
+  ];
+
+  for (const [table, label, rows, onConflict] of uploadSteps) {
+    if (!rows.length) {
+      continue;
+    }
+    await recordCloudStep(failures, label, () => supabaseClient
+      .from(table)
+      .upsert(rows, { onConflict }));
   }
 }
 
@@ -1432,45 +1445,36 @@ async function backupLocalDataToCloud(userId) {
   const localState = migrateSavedState(localSaveProvider.load());
   const failures = [];
 
-  await recordCloudStep(failures, "settings", () => supabaseClient
-    .from("user_settings")
-    .upsert(cloudSettingsRow(userId, localState.settings), { onConflict: "user_id" }));
-
-  await backupFavoritesToCloud(userId, localState.favorites, failures);
+  const rowsByTable = {
+    favorites: cloudFavoriteRows(userId, localState.favorites),
+    reflections: [],
+    history: cloudHistoryRows(userId, installationId, localState.history),
+    customAffirmations: cloudCustomAffirmationRows(userId, localState.customAffirmations),
+    feedbackResponses: cloudFeedbackResponseRows(userId, localState.feedbackResponses),
+  };
 
   try {
-    const reflectionRows = await cloudReflectionRows(userId, localState.reflections);
-    if (reflectionRows.length) {
-      await recordCloudStep(failures, "reflections", () => supabaseClient
-        .from("reflections")
-        .upsert(reflectionRows, { onConflict: "user_id,id" }));
-    }
+    rowsByTable.reflections = await cloudReflectionRows(userId, localState.reflections);
   } catch (error) {
     if (Object.keys(localState.reflections || {}).length) {
       failures.push(`reflections: ${error.message || translate("journalEncryptionRequired")}`);
     }
   }
 
-  const historyRows = cloudHistoryRows(userId, installationId, localState.history);
-  if (historyRows.length) {
-    await recordCloudStep(failures, "history", () => supabaseClient
-      .from("history")
-      .upsert(historyRows, { onConflict: "user_id,installation_id,date" }));
+  if (failures.length) {
+    return failures;
   }
 
-  const customRows = cloudCustomAffirmationRows(userId, localState.customAffirmations);
-  if (customRows.length) {
-    await recordCloudStep(failures, "custom affirmations", () => supabaseClient
-      .from("custom_affirmations")
-      .upsert(customRows, { onConflict: "user_id,id" }));
+  await deleteExistingCloudBackupRows(userId, failures);
+  if (failures.length) {
+    return failures;
   }
 
-  const feedbackRows = cloudFeedbackResponseRows(userId, localState.feedbackResponses);
-  if (feedbackRows.length) {
-    await recordCloudStep(failures, "feedback", () => supabaseClient
-      .from("feedback_responses")
-      .upsert(feedbackRows, { onConflict: "user_id,id" }));
-  }
+  await recordCloudStep(failures, "settings", () => supabaseClient
+    .from("user_settings")
+    .upsert(cloudSettingsRow(userId, localState.settings), { onConflict: "user_id" }));
+
+  await uploadReplacementCloudRows(rowsByTable, failures);
 
   return failures;
 }
