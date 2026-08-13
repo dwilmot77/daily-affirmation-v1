@@ -157,6 +157,8 @@ const translations = {
     cloudBackupSuccess: "Cloud backup finished.",
     cloudBackupFailed: "Cloud backup could not finish: {details}",
     cloudBackupUnavailable: "Cloud backup is unavailable right now. Your local data is still safe on this device.",
+    cloudBackupJournalKeyMissing: "journal encryption key record is missing",
+    cloudBackupJournalKeyMismatch: "journal encryption key could not be verified",
     cloudRestore: "Restore from cloud",
     cloudRestoreRunning: "Restoring cloud data...",
     cloudRestoreSuccess: "Cloud restore finished.",
@@ -169,6 +171,7 @@ const translations = {
     cloudRestoreKeyRecordMissing: "Recovery key record unavailable. Journal restore cannot continue until the cloud recovery key is available.",
     cloudRestoreKeyUnlockFailed: "Journal key could not be unlocked. Check your recovery secret and try again.",
     cloudRestoreLocalKeySaveFailed: "Journal key was unlocked but could not be saved on this device. Your local data is unchanged.",
+    cloudRestoreLocalKeyMismatch: "The local journal key could not unlock cloud journals. Enter your recovery secret to continue.",
     cloudRestoreSecret: "Journal recovery secret",
     cloudRestoreSecretNote: "Enter your recovery secret to unlock encrypted journal entries before restoring them to this device.",
     cloudRestoreWithSecret: "Restore with recovery secret",
@@ -393,6 +396,8 @@ const translations = {
     cloudBackupSuccess: "Copia en la nube terminada.",
     cloudBackupFailed: "La copia en la nube no pudo terminar: {details}",
     cloudBackupUnavailable: "La copia en la nube no esta disponible ahora. Tus datos locales siguen seguros en este dispositivo.",
+    cloudBackupJournalKeyMissing: "falta el registro de clave de cifrado del diario",
+    cloudBackupJournalKeyMismatch: "no se pudo verificar la clave de cifrado del diario",
     cloudRestore: "Restaurar desde la nube",
     cloudRestoreRunning: "Restaurando datos de la nube...",
     cloudRestoreSuccess: "Restauracion desde la nube terminada.",
@@ -405,6 +410,7 @@ const translations = {
     cloudRestoreKeyRecordMissing: "El registro de clave de recuperacion no esta disponible. La restauracion del diario no puede continuar hasta que la clave de recuperacion en la nube este disponible.",
     cloudRestoreKeyUnlockFailed: "No se pudo desbloquear la clave del diario. Revisa tu secreto de recuperacion e intenta de nuevo.",
     cloudRestoreLocalKeySaveFailed: "La clave del diario se desbloqueo, pero no pudo guardarse en este dispositivo. Tus datos locales no cambiaron.",
+    cloudRestoreLocalKeyMismatch: "La clave local del diario no pudo desbloquear los diarios en la nube. Escribe tu secreto de recuperacion para continuar.",
     cloudRestoreSecret: "Secreto de recuperacion del diario",
     cloudRestoreSecretNote: "Escribe tu secreto de recuperacion para desbloquear entradas cifradas del diario antes de restaurarlas en este dispositivo.",
     cloudRestoreWithSecret: "Restaurar con secreto de recuperacion",
@@ -757,14 +763,22 @@ const encryptionMetadataProvider = {
   save(metadata) {
     localStorage.setItem(ENCRYPTION_STORAGE_KEY, JSON.stringify(metadata));
   },
-  markConfigured(userId) {
+  cloudMetadata(userId) {
+    return plainObject(plainObject(this.load().users)[userId]).cloudMetadata || null;
+  },
+  markConfigured(userId, cloudMetadata = null) {
     const metadata = this.load();
     metadata.users = plainObject(metadata.users);
+    const existing = plainObject(metadata.users[userId]);
     metadata.users[userId] = {
+      ...existing,
       configured: true,
       keyVersion: JOURNAL_KEY_VERSION,
       updatedAt: new Date().toISOString(),
     };
+    if (cloudMetadata) {
+      metadata.users[userId].cloudMetadata = comparableJournalKeyMetadata(cloudMetadata);
+    }
     this.save(metadata);
   },
 };
@@ -919,6 +933,26 @@ async function unwrapJournalKey(secret, metadata) {
     false,
     ["encrypt", "decrypt"],
   );
+}
+
+function comparableJournalKeyMetadata(metadata) {
+  const source = plainObject(metadata);
+  return {
+    key_version: source.key_version ?? JOURNAL_KEY_VERSION,
+    wrapped_journal_key: source.wrapped_journal_key || "",
+    wrapping_iv: source.wrapping_iv || "",
+    kdf_salt: source.kdf_salt || "",
+    kdf_iterations: source.kdf_iterations ?? JOURNAL_KDF_ITERATIONS,
+    kdf_hash: source.kdf_hash || JOURNAL_KDF_HASH,
+    kdf_algorithm: source.kdf_algorithm || "PBKDF2",
+    wrapping_algorithm: source.wrapping_algorithm || "AES-GCM",
+  };
+}
+
+function journalKeyMetadataMatches(first, second) {
+  const left = comparableJournalKeyMetadata(first);
+  const right = comparableJournalKeyMetadata(second);
+  return Object.keys(left).every((key) => left[key] === right[key]);
 }
 
 async function encryptReflectionText(journalKey, text) {
@@ -1411,6 +1445,69 @@ async function recordCloudStep(failures, label, action) {
   }
 }
 
+async function fetchCloudJournalKeyMetadata(userId) {
+  const rows = await fetchCloudRows("journal_encryption_keys", userId);
+  return rows[0] || null;
+}
+
+async function localKeyDecryptsExistingCloudReflections(userId) {
+  const localKey = await getLocalJournalKey(userId);
+  if (!localKey) {
+    return false;
+  }
+  const rows = await fetchCloudRows("reflections", userId);
+  const encryptedRows = encryptedReflectionRows(rows);
+  if (!encryptedRows.length) {
+    return false;
+  }
+  try {
+    await restoreReflectionRows(encryptedRows, localKey);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function ensureCloudJournalKeyMatchesLocal(userId, failures) {
+  const localMetadata = encryptionMetadataProvider.cloudMetadata(userId);
+  let cloudMetadata = null;
+  try {
+    cloudMetadata = await fetchCloudJournalKeyMetadata(userId);
+  } catch (error) {
+    failures.push(`reflections: ${error.message || translate("cloudBackupJournalKeyMissing")}`);
+    return;
+  }
+
+  if (cloudMetadata && localMetadata && journalKeyMetadataMatches(cloudMetadata, localMetadata)) {
+    return;
+  }
+
+  if (cloudMetadata && !localMetadata) {
+    try {
+      if (await localKeyDecryptsExistingCloudReflections(userId)) {
+        encryptionMetadataProvider.markConfigured(userId, cloudMetadata);
+        return;
+      }
+    } catch {
+      failures.push(`reflections: ${translate("cloudBackupJournalKeyMismatch")}`);
+      return;
+    }
+  }
+
+  if (localMetadata) {
+    await recordCloudStep(failures, "journal encryption key", () => supabaseClient
+      .from("journal_encryption_keys")
+      .upsert({
+        user_id: userId,
+        ...localMetadata,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" }));
+    return;
+  }
+
+  failures.push(`reflections: ${translate(cloudMetadata ? "cloudBackupJournalKeyMismatch" : "cloudBackupJournalKeyMissing")}`);
+}
+
 async function deleteExistingCloudBackupRows(userId, failures) {
   const tables = [
     ["favorites", "favorites"],
@@ -1466,6 +1563,14 @@ async function backupLocalDataToCloud(userId) {
     if (Object.keys(localState.reflections || {}).length) {
       failures.push(`reflections: ${error.message || translate("journalEncryptionRequired")}`);
     }
+  }
+
+  if (failures.length) {
+    return failures;
+  }
+
+  if (rowsByTable.reflections.length) {
+    await ensureCloudJournalKeyMatchesLocal(userId, failures);
   }
 
   if (failures.length) {
@@ -1603,14 +1708,10 @@ async function localJournalKeyForRestore(userId) {
   }
 }
 
-async function journalKeyForRestore(userId, cloudData, recoverySecret = "") {
+async function recoveredJournalKeyForRestore(userId, cloudData, recoverySecret = "") {
   const encryptedRows = encryptedReflectionRows(cloudData.reflections);
   if (!encryptedRows.length) {
     return null;
-  }
-  const localKey = await localJournalKeyForRestore(userId);
-  if (localKey) {
-    return localKey;
   }
   if (!cloudData.journalKeyMetadata) {
     throw new CloudRestoreError("cloudRestoreKeyRecordMissing");
@@ -1624,13 +1725,6 @@ async function journalKeyForRestore(userId, cloudData, recoverySecret = "") {
   } catch {
     throw new CloudRestoreError("cloudRestoreKeyUnlockFailed");
   }
-  try {
-    await storeLocalJournalKey(userId, key);
-  } catch {
-    throw new CloudRestoreError("cloudRestoreLocalKeySaveFailed");
-  }
-  encryptionMetadataProvider.markConfigured(userId);
-  journalEncryptionConfigured = true;
   return key;
 }
 
@@ -1818,6 +1912,43 @@ async function buildCloudRestoreState(currentState, cloudData, journalKey) {
   };
 }
 
+async function buildCloudRestoreStateWithJournalKeyRecovery(userId, cloudData, recoverySecret = "") {
+  const encryptedRows = encryptedReflectionRows(cloudData.reflections);
+  if (!encryptedRows.length) {
+    return buildCloudRestoreState(state, cloudData, null);
+  }
+
+  const localJournalKey = await localJournalKeyForRestore(userId);
+  if (localJournalKey) {
+    try {
+      return await buildCloudRestoreState(state, cloudData, localJournalKey);
+    } catch {
+      if (!cloudData.journalKeyMetadata) {
+        throw new CloudRestoreError("cloudRestoreKeyRecordMissing");
+      }
+      if (!recoverySecret) {
+        throw new CloudRestoreError("cloudRestoreLocalKeyMismatch");
+      }
+    }
+  }
+
+  const recoveredKey = await recoveredJournalKeyForRestore(userId, cloudData, recoverySecret);
+  let restoredState;
+  try {
+    restoredState = await buildCloudRestoreState(state, cloudData, recoveredKey);
+  } catch {
+    throw new CloudRestoreError("cloudRestoreKeyUnlockFailed");
+  }
+  try {
+    await storeLocalJournalKey(userId, recoveredKey);
+  } catch {
+    throw new CloudRestoreError("cloudRestoreLocalKeySaveFailed");
+  }
+  encryptionMetadataProvider.markConfigured(userId, cloudData.journalKeyMetadata);
+  journalEncryptionConfigured = true;
+  return restoredState;
+}
+
 function createRestoreSafetySnapshot(currentState) {
   localStorage.setItem(RESTORE_SAFETY_STORAGE_KEY, JSON.stringify({
     createdAt: new Date().toISOString(),
@@ -1872,19 +2003,7 @@ async function restoreFromCloud(recoverySecret = "") {
   try {
     const userId = authSession.user.id;
     const cloudData = await fetchCloudRestoreData(userId);
-    const hasEncryptedReflections = Boolean(encryptedReflectionRows(cloudData.reflections).length);
-    const localJournalKey = await localJournalKeyForRestore(userId);
-    if (hasEncryptedReflections && !localJournalKey && !cloudData.journalKeyMetadata) {
-      throw new CloudRestoreError("cloudRestoreKeyRecordMissing");
-    }
-    const needsRecoverySecret = hasEncryptedReflections && !localJournalKey && !recoverySecret;
-    if (needsRecoverySecret) {
-      showCloudRestoreSecretForm();
-      setCloudBackupStatus(translate("cloudRestoreRecoveryRequired"));
-      return;
-    }
-    const journalKey = await journalKeyForRestore(userId, cloudData, recoverySecret);
-    const { mergedState, legacyPlaintextCount } = await buildCloudRestoreState(state, cloudData, journalKey);
+    const { mergedState, legacyPlaintextCount } = await buildCloudRestoreStateWithJournalKeyRecovery(userId, cloudData, recoverySecret);
     applyRestoredState(mergedState);
     hideCloudRestoreSecretForm();
     const legacyMessage = legacyPlaintextCount
@@ -1892,6 +2011,11 @@ async function restoreFromCloud(recoverySecret = "") {
       : "";
     setCloudBackupStatus(`${translate("cloudRestoreSuccess")}${legacyMessage}`);
   } catch (error) {
+    if (["cloudRestoreRecoveryRequired", "cloudRestoreLocalKeyMismatch"].includes(error?.translationKey)) {
+      showCloudRestoreSecretForm();
+      setCloudBackupStatus(restoreErrorMessage(error, recoverySecret));
+      return;
+    }
     setCloudBackupStatus(restoreErrorMessage(error, recoverySecret));
   } finally {
     elements.cloudRestoreButton.disabled = false;
@@ -2143,7 +2267,7 @@ async function saveJournalEncryptionSetup() {
       throw error;
     }
     await storeLocalJournalKey(userId, localJournalKey);
-    encryptionMetadataProvider.markConfigured(userId);
+    encryptionMetadataProvider.markConfigured(userId, cloudMetadata);
     journalEncryptionConfigured = true;
     cancelJournalEncryptionSetup();
     renderJournalEncryptionStatus();
