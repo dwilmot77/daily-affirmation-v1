@@ -129,6 +129,7 @@ const translations = {
     accountNewPassword: "New password",
     accountConfirmPassword: "Confirm new password",
     accountActions: "Account actions",
+    continueWithGoogle: "Continue with Google",
     createAccount: "Create account",
     signIn: "Sign in",
     forgotPassword: "Forgot password",
@@ -146,6 +147,8 @@ const translations = {
     authSignedOut: "Signed out.",
     authPasswordUpdated: "Password updated.",
     authSessionRestored: "Session restored.",
+    authGoogleRedirecting: "Opening Google sign-in...",
+    authOAuthCancelled: "Google sign-in was cancelled or could not finish.",
     cloudBackupNow: "Back up now",
     cloudBackupNever: "Last cloud backup: Never",
     cloudBackupDate: "Last cloud backup: {date}",
@@ -362,6 +365,7 @@ const translations = {
     accountNewPassword: "Nueva contrasena",
     accountConfirmPassword: "Confirmar nueva contrasena",
     accountActions: "Acciones de cuenta",
+    continueWithGoogle: "Continuar con Google",
     createAccount: "Crear cuenta",
     signIn: "Iniciar sesion",
     forgotPassword: "Olvide mi contrasena",
@@ -379,6 +383,8 @@ const translations = {
     authSignedOut: "Sesion cerrada.",
     authPasswordUpdated: "Contrasena actualizada.",
     authSessionRestored: "Sesion restaurada.",
+    authGoogleRedirecting: "Abriendo inicio de sesion con Google...",
+    authOAuthCancelled: "El inicio de sesion con Google se cancelo o no pudo terminar.",
     cloudBackupNow: "Hacer copia ahora",
     cloudBackupNever: "Ultima copia en la nube: Nunca",
     cloudBackupDate: "Ultima copia en la nube: {date}",
@@ -644,6 +650,7 @@ const elements = {
   accountNewPasswordLabel: document.querySelector("#accountNewPasswordLabel"),
   accountConfirmPassword: document.querySelector("#accountConfirmPassword"),
   accountConfirmPasswordLabel: document.querySelector("#accountConfirmPasswordLabel"),
+  googleSignInButton: document.querySelector("#googleSignInButton"),
   createAccountButton: document.querySelector("#createAccountButton"),
   signInButton: document.querySelector("#signInButton"),
   forgotPasswordButton: document.querySelector("#forgotPasswordButton"),
@@ -2023,6 +2030,15 @@ function authErrorMessage(error) {
   return error?.message || translate("authUnavailable");
 }
 
+function oauthRedirectErrorMessage() {
+  const parameters = new URLSearchParams(`${window.location.search.replace(/^\?/, "")}&${window.location.hash.replace(/^#/, "")}`);
+  const error = parameters.get("error") || parameters.get("error_code");
+  if (!error) {
+    return "";
+  }
+  return parameters.get("error_description") || translate("authOAuthCancelled");
+}
+
 function authEmail() {
   return elements.accountEmail.value.trim();
 }
@@ -2160,6 +2176,7 @@ function renderAuthState() {
   elements.accountNewPasswordLabel.hidden = !authRecoveryMode;
   elements.accountConfirmPassword.hidden = !authRecoveryMode;
   elements.accountConfirmPasswordLabel.hidden = !authRecoveryMode;
+  elements.googleSignInButton.hidden = authRecoveryMode;
   elements.createAccountButton.hidden = authRecoveryMode;
   elements.signInButton.hidden = authRecoveryMode;
   elements.forgotPasswordButton.hidden = authRecoveryMode;
@@ -2174,6 +2191,7 @@ function renderAuthUnavailable() {
   renderAuthState();
   setAuthStatus(translate("authUnavailable"));
   [
+    elements.googleSignInButton,
     elements.createAccountButton,
     elements.signInButton,
     elements.forgotPasswordButton,
@@ -2192,7 +2210,8 @@ function renderAuthUnavailable() {
 }
 
 function cleanupAuthUrl() {
-  if (window.location.hash && /access_token|refresh_token|type=/.test(window.location.hash)) {
+  if ((window.location.hash && /access_token|refresh_token|type=|error=|error_code=/.test(window.location.hash))
+    || (window.location.search && /error=|error_code=/.test(window.location.search))) {
     window.history.replaceState(null, document.title, `${window.location.origin}${window.location.pathname}`);
   }
 }
@@ -2202,6 +2221,7 @@ async function initializeAuth() {
     renderAuthUnavailable();
     return;
   }
+  const redirectError = oauthRedirectErrorMessage();
 
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: {
@@ -2234,6 +2254,9 @@ async function initializeAuth() {
     authSession = data?.session || null;
     renderAuthState();
     refreshJournalEncryptionStatus();
+    if (redirectError) {
+      setAuthStatus(redirectError);
+    }
     cleanupAuthUrl();
   } catch {
     renderAuthUnavailable();
@@ -2279,6 +2302,24 @@ async function signIn() {
   renderAuthState();
   refreshJournalEncryptionStatus();
   setAuthStatus(error ? authErrorMessage(error) : translate("authSignedIn"));
+}
+
+async function signInWithGoogle() {
+  if (!supabaseClient) {
+    setAuthStatus(translate("authUnavailable"));
+    return;
+  }
+
+  setAuthStatus(translate("authGoogleRedirecting"));
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: AUTH_REDIRECT_URL,
+    },
+  });
+  if (error) {
+    setAuthStatus(authErrorMessage(error));
+  }
 }
 
 async function signOut() {
@@ -3516,6 +3557,7 @@ function applyTranslations() {
   setLabelText("accountNewPassword", translate("accountNewPassword"));
   setLabelText("accountConfirmPassword", translate("accountConfirmPassword"));
   document.querySelector(".account-actions").setAttribute("aria-label", translate("accountActions"));
+  elements.googleSignInButton.textContent = translate("continueWithGoogle");
   elements.createAccountButton.textContent = translate("createAccount");
   elements.signInButton.textContent = translate("signIn");
   elements.forgotPasswordButton.textContent = translate("forgotPassword");
@@ -3728,6 +3770,7 @@ function bindEvents() {
   elements.reminderToggle.addEventListener("change", () => updateSetting("reminderEnabled", elements.reminderToggle.checked));
   elements.reminderTime.addEventListener("change", () => updateSetting("reminderTime", elements.reminderTime.value || "09:00"));
   elements.accountForm.addEventListener("submit", (event) => event.preventDefault());
+  elements.googleSignInButton.addEventListener("click", signInWithGoogle);
   elements.createAccountButton.addEventListener("click", createAccount);
   elements.signInButton.addEventListener("click", signIn);
   elements.forgotPasswordButton.addEventListener("click", sendPasswordReset);

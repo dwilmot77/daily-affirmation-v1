@@ -712,6 +712,17 @@ button.calendar-day:hover {
   width: 100%;
 }
 
+.google-sign-in-button {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+.google-sign-in-button:hover {
+  color: var(--accent-text);
+  background: var(--accent-strong);
+}
+
 .file-import-label,
 #backupStatus,
 #clearDataWarning {
