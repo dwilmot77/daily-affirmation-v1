@@ -241,6 +241,23 @@
                   <button type="button" id="cancelJournalEncryptionButton">Cancel</button>
                 </div>
               </form>
+              <button type="button" id="showChangeJournalSecretButton" hidden>Change Recovery Secret</button>
+              <form class="journal-encryption-form" id="changeJournalSecretForm" hidden>
+                <p class="field-note" id="changeJournalSecretDescription">
+                  Change Recovery Secret is for when this device can still unlock your journal, but you have forgotten your old recovery secret.
+                </p>
+                <label for="newJournalRecoverySecret" id="newJournalRecoverySecretLabel">New recovery secret</label>
+                <input id="newJournalRecoverySecret" type="password" autocomplete="new-password" />
+                <label for="newJournalRecoverySecretConfirm" id="newJournalRecoverySecretConfirmLabel">Confirm new recovery secret</label>
+                <input id="newJournalRecoverySecretConfirm" type="password" autocomplete="new-password" />
+                <p class="field-note" id="changeJournalSecretWarning">
+                  Your old recovery secret will no longer restore your journal. Save your new recovery secret somewhere safe.
+                </p>
+                <div class="account-actions" aria-label="Change recovery secret actions">
+                  <button type="button" id="saveChangeJournalSecretButton">Save new recovery secret</button>
+                  <button type="button" id="cancelChangeJournalSecretButton">Cancel</button>
+                </div>
+              </form>
             </div>
             <button type="button" id="cloudBackupButton">Back up now</button>
             <button type="button" id="cloudRestoreButton">Restore from cloud</button>

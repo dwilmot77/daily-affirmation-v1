@@ -703,6 +703,7 @@ button.calendar-day:hover {
 .result-actions button,
 .account-actions button,
 #showJournalEncryptionSetupButton,
+#showChangeJournalSecretButton,
 #signOutButton,
 #cloudBackupButton,
 #cloudRestoreButton,
