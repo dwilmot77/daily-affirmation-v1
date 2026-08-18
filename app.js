@@ -193,6 +193,16 @@ const translations = {
     changeJournalSecretUnavailable: "This device cannot change the recovery secret until it can unlock your journal.",
     changeJournalSecretUnsupported: "This device can read your journal, but its saved key cannot be rewrapped by this browser. Your existing recovery setup is unchanged.",
     changeJournalSecretVerifyFailed: "Recovery secret was not changed because the journal key could not be verified.",
+    migrateJournalKeyButton: "Migrate Older Journal Key",
+    migrateJournalKeyDescription: "Use this only for older journal keys that cannot use Change Recovery Secret. Your journal is decrypted and re-encrypted locally before the cloud backup is switched.",
+    migrateJournalKeyWarning: "This migration is for older journal keys that cannot use Change Recovery Secret. Your old recovery secret will no longer restore your journal after migration succeeds.",
+    migrateJournalKeyActions: "Migrate older journal key actions",
+    migrateJournalKeySave: "Migrate journal key",
+    migrateJournalKeyRunning: "Migrating journal encryption...",
+    migrateJournalKeySuccess: "Journal recovery secret migrated. Save your new recovery secret somewhere safe.",
+    migrateJournalKeyFailed: "Journal key migration could not finish. Your existing journal setup is unchanged.",
+    migrateJournalKeyCountMismatch: "Journal key migration could not be verified. Your existing journal setup is unchanged.",
+    migrateJournalKeyNoEntries: "There are no journal entries to migrate.",
     journalRecoverySecret: "Recovery secret",
     journalRecoverySecretConfirm: "Confirm recovery secret",
     journalEncryptionWarning: "Save this recovery secret somewhere private. If it is lost, encrypted journal entries may not be recoverable on a new device.",
@@ -443,6 +453,16 @@ const translations = {
     changeJournalSecretUnavailable: "Este dispositivo no puede cambiar el secreto de recuperacion hasta que pueda desbloquear tu diario.",
     changeJournalSecretUnsupported: "Este dispositivo puede leer tu diario, pero el navegador no puede volver a envolver la clave guardada. Tu configuracion actual no cambio.",
     changeJournalSecretVerifyFailed: "No se cambio el secreto de recuperacion porque no se pudo verificar la clave del diario.",
+    migrateJournalKeyButton: "Migrar clave antigua del diario",
+    migrateJournalKeyDescription: "Usa esto solo para claves antiguas del diario que no pueden usar Cambiar secreto de recuperacion. Tu diario se descifra y se vuelve a cifrar localmente antes de cambiar la copia en la nube.",
+    migrateJournalKeyWarning: "Esta migracion es para claves antiguas del diario que no pueden usar Cambiar secreto de recuperacion. Tu secreto anterior ya no restaurara tu diario despues de que la migracion tenga exito.",
+    migrateJournalKeyActions: "Acciones para migrar la clave antigua del diario",
+    migrateJournalKeySave: "Migrar clave del diario",
+    migrateJournalKeyRunning: "Migrando cifrado del diario...",
+    migrateJournalKeySuccess: "Se migro el secreto de recuperacion del diario. Guarda tu nuevo secreto en un lugar seguro.",
+    migrateJournalKeyFailed: "No se pudo terminar la migracion de la clave del diario. Tu configuracion actual no cambio.",
+    migrateJournalKeyCountMismatch: "No se pudo verificar la migracion de la clave del diario. Tu configuracion actual no cambio.",
+    migrateJournalKeyNoEntries: "No hay entradas de diario para migrar.",
     journalRecoverySecret: "Secreto de recuperacion",
     journalRecoverySecretConfirm: "Confirmar secreto de recuperacion",
     journalEncryptionWarning: "Guarda este secreto de recuperacion en un lugar privado. Si se pierde, las entradas cifradas del diario pueden no recuperarse en un dispositivo nuevo.",
@@ -706,6 +726,16 @@ const elements = {
   changeJournalSecretWarning: document.querySelector("#changeJournalSecretWarning"),
   saveChangeJournalSecretButton: document.querySelector("#saveChangeJournalSecretButton"),
   cancelChangeJournalSecretButton: document.querySelector("#cancelChangeJournalSecretButton"),
+  showMigrateJournalKeyButton: document.querySelector("#showMigrateJournalKeyButton"),
+  migrateJournalKeyForm: document.querySelector("#migrateJournalKeyForm"),
+  migrateJournalKeyDescription: document.querySelector("#migrateJournalKeyDescription"),
+  migrateJournalRecoverySecretLabel: document.querySelector("#migrateJournalRecoverySecretLabel"),
+  migrateJournalRecoverySecret: document.querySelector("#migrateJournalRecoverySecret"),
+  migrateJournalRecoverySecretConfirmLabel: document.querySelector("#migrateJournalRecoverySecretConfirmLabel"),
+  migrateJournalRecoverySecretConfirm: document.querySelector("#migrateJournalRecoverySecretConfirm"),
+  migrateJournalKeyWarning: document.querySelector("#migrateJournalKeyWarning"),
+  saveMigrateJournalKeyButton: document.querySelector("#saveMigrateJournalKeyButton"),
+  cancelMigrateJournalKeyButton: document.querySelector("#cancelMigrateJournalKeyButton"),
   cloudBackupButton: document.querySelector("#cloudBackupButton"),
   cloudRestoreButton: document.querySelector("#cloudRestoreButton"),
   cloudRestoreForm: document.querySelector("#cloudRestoreForm"),
@@ -956,6 +986,12 @@ async function createWrappedJournalKey(secret) {
       updated_at: new Date().toISOString(),
     },
   };
+}
+
+async function createJournalKeyForMigration(secret) {
+  const journalKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+  const cloudMetadata = await wrapExistingJournalKey(secret, journalKey);
+  return { localJournalKey: journalKey, cloudMetadata };
 }
 
 async function wrapExistingJournalKey(secret, journalKey) {
@@ -1490,6 +1526,36 @@ function cloudFeedbackResponseRows(userId, feedbackResponses) {
       response: entry.response,
       updated_at: entry.updatedAt || updatedAt,
     }));
+}
+
+async function encryptedReflectionRowsForKey(reflections, journalKey) {
+  const updatedAt = new Date().toISOString();
+  const entries = Object.values(reflections || {}).filter((entry) => entry?.id && entry?.date && entry?.text);
+  const rows = [];
+  for (const entry of entries) {
+    const encrypted = await encryptReflectionText(journalKey, entry.text || "");
+    rows.push({
+      id: entry.id,
+      date: entry.date,
+      affirmation_id: entry.affirmationId || "",
+      category: entry.category || "",
+      affirmation: entry.affirmation || "",
+      reflection_text: null,
+      reflection_ciphertext: encrypted.ciphertext,
+      reflection_iv: encrypted.iv,
+      encryption_version: JOURNAL_ENCRYPTION_VERSION,
+      updated_at: entry.updatedAt || updatedAt,
+    });
+  }
+  return rows;
+}
+
+function journalKeyMetadataForRpc(metadata) {
+  const comparable = comparableJournalKeyMetadata(metadata);
+  return {
+    ...comparable,
+    updated_at: metadata?.updated_at || new Date().toISOString(),
+  };
 }
 
 async function recordCloudStep(failures, label, action) {
@@ -2285,6 +2351,7 @@ function renderJournalEncryptionStatus() {
   elements.showChangeJournalSecretButton.textContent = translate("changeJournalSecretButton");
   elements.showChangeJournalSecretButton.hidden = !journalEncryptionConfigured
     || !elements.changeJournalSecretForm.hidden
+    || !elements.migrateJournalKeyForm.hidden
     || !elements.journalEncryptionForm.hidden;
   elements.changeJournalSecretDescription.textContent = translate("changeJournalSecretDescription");
   elements.newJournalRecoverySecretLabel.textContent = translate("newJournalRecoverySecret");
@@ -2292,6 +2359,18 @@ function renderJournalEncryptionStatus() {
   elements.changeJournalSecretWarning.textContent = translate("changeJournalSecretWarning");
   elements.saveChangeJournalSecretButton.textContent = translate("saveChangeJournalSecret");
   elements.cancelChangeJournalSecretButton.textContent = translate("cancel");
+  elements.showMigrateJournalKeyButton.textContent = translate("migrateJournalKeyButton");
+  elements.showMigrateJournalKeyButton.hidden = !journalEncryptionConfigured
+    || !elements.migrateJournalKeyForm.hidden
+    || !elements.changeJournalSecretForm.hidden
+    || !elements.journalEncryptionForm.hidden;
+  elements.migrateJournalKeyDescription.textContent = translate("migrateJournalKeyDescription");
+  elements.migrateJournalRecoverySecretLabel.textContent = translate("newJournalRecoverySecret");
+  elements.migrateJournalRecoverySecretConfirmLabel.textContent = translate("newJournalRecoverySecretConfirm");
+  elements.migrateJournalKeyWarning.textContent = translate("migrateJournalKeyWarning");
+  elements.migrateJournalKeyForm.querySelector(".account-actions").setAttribute("aria-label", translate("migrateJournalKeyActions"));
+  elements.saveMigrateJournalKeyButton.textContent = translate("migrateJournalKeySave");
+  elements.cancelMigrateJournalKeyButton.textContent = translate("cancel");
 }
 
 async function refreshJournalEncryptionStatus() {
@@ -2313,6 +2392,7 @@ async function refreshJournalEncryptionStatus() {
 function showJournalEncryptionSetup() {
   elements.journalEncryptionForm.hidden = false;
   elements.changeJournalSecretForm.hidden = true;
+  elements.migrateJournalKeyForm.hidden = true;
   elements.showJournalEncryptionSetupButton.hidden = true;
   elements.journalRecoverySecret.value = "";
   elements.journalRecoverySecretConfirm.value = "";
@@ -2330,6 +2410,7 @@ function cancelJournalEncryptionSetup() {
 function showChangeJournalSecret() {
   elements.changeJournalSecretForm.hidden = false;
   elements.journalEncryptionForm.hidden = true;
+  elements.migrateJournalKeyForm.hidden = true;
   elements.showChangeJournalSecretButton.hidden = true;
   elements.newJournalRecoverySecret.value = "";
   elements.newJournalRecoverySecretConfirm.value = "";
@@ -2341,6 +2422,24 @@ function cancelChangeJournalSecret() {
   elements.changeJournalSecretForm.hidden = true;
   elements.newJournalRecoverySecret.value = "";
   elements.newJournalRecoverySecretConfirm.value = "";
+  renderJournalEncryptionStatus();
+}
+
+function showMigrateJournalKey() {
+  elements.migrateJournalKeyForm.hidden = false;
+  elements.journalEncryptionForm.hidden = true;
+  elements.changeJournalSecretForm.hidden = true;
+  elements.showMigrateJournalKeyButton.hidden = true;
+  elements.migrateJournalRecoverySecret.value = "";
+  elements.migrateJournalRecoverySecretConfirm.value = "";
+  elements.migrateJournalRecoverySecret.focus();
+  renderJournalEncryptionStatus();
+}
+
+function cancelMigrateJournalKey() {
+  elements.migrateJournalKeyForm.hidden = true;
+  elements.migrateJournalRecoverySecret.value = "";
+  elements.migrateJournalRecoverySecretConfirm.value = "";
   renderJournalEncryptionStatus();
 }
 
@@ -2449,6 +2548,87 @@ async function saveChangedJournalSecret() {
   }
 }
 
+async function migrateOlderJournalKey() {
+  if (!supabaseClient || !authSession?.user?.id || !cryptoAvailable()) {
+    setCloudBackupStatus(translate("migrateJournalKeyFailed"));
+    return;
+  }
+
+  const secret = elements.migrateJournalRecoverySecret.value;
+  const confirmSecret = elements.migrateJournalRecoverySecretConfirm.value;
+  if (!secret || !confirmSecret) {
+    setCloudBackupStatus(translate("journalEncryptionSecretRequired"));
+    return;
+  }
+  if (secret !== confirmSecret) {
+    setCloudBackupStatus(translate("journalEncryptionSecretMismatch"));
+    return;
+  }
+  if (secret.length < 10) {
+    setCloudBackupStatus(translate("journalEncryptionSecretTooShort"));
+    return;
+  }
+
+  elements.saveMigrateJournalKeyButton.disabled = true;
+  setCloudBackupStatus(translate("migrateJournalKeyRunning"));
+  try {
+    const userId = authSession.user.id;
+    const oldJournalKey = await getLocalJournalKey(userId);
+    if (!oldJournalKey) {
+      throw new Error(translate("changeJournalSecretUnavailable"));
+    }
+
+    await verifyJournalKeyStillWorks(userId, oldJournalKey);
+    const localState = migrateSavedState(localSaveProvider.load());
+    const reflectionCount = Object.values(localState.reflections || {}).filter((entry) => entry?.id && entry?.date && entry?.text).length;
+    if (!reflectionCount) {
+      throw new Error(translate("migrateJournalKeyNoEntries"));
+    }
+
+    const { localJournalKey: newJournalKey, cloudMetadata } = await createJournalKeyForMigration(secret);
+    const reflectionRows = await encryptedReflectionRowsForKey(localState.reflections, newJournalKey);
+    if (reflectionRows.length !== reflectionCount) {
+      throw new Error(translate("migrateJournalKeyCountMismatch"));
+    }
+    const { restored } = await restoreReflectionRows(reflectionRows, newJournalKey);
+    if (Object.keys(restored).length !== reflectionRows.length) {
+      throw new Error(translate("migrateJournalKeyCountMismatch"));
+    }
+    if (!(await verifyLocalJournalEntryRoundTrip(newJournalKey))) {
+      throw new Error(translate("changeJournalSecretVerifyFailed"));
+    }
+
+    const { data, error } = await supabaseClient.rpc("replace_encrypted_journal_backup", {
+      p_reflections: reflectionRows,
+      p_key: journalKeyMetadataForRpc(cloudMetadata),
+    });
+    if (error) {
+      throw error;
+    }
+    const replacedCount = Number(data);
+    if (replacedCount !== reflectionRows.length) {
+      throw new Error(translate("migrateJournalKeyCountMismatch"));
+    }
+    const verifiedAfterRpc = await restoreReflectionRows(reflectionRows, newJournalKey);
+    if (Object.keys(verifiedAfterRpc.restored).length !== reflectionRows.length) {
+      throw new Error(translate("migrateJournalKeyCountMismatch"));
+    }
+
+    await storeLocalJournalKey(userId, newJournalKey);
+    encryptionMetadataProvider.markConfigured(userId, cloudMetadata);
+    journalEncryptionConfigured = true;
+    cancelMigrateJournalKey();
+    renderJournalEncryptionStatus();
+    setCloudBackupStatus(translate("migrateJournalKeySuccess"));
+  } catch (error) {
+    setCloudBackupStatus(error?.message || translate("migrateJournalKeyFailed"));
+  } finally {
+    elements.saveMigrateJournalKeyButton.disabled = false;
+    elements.migrateJournalRecoverySecret.value = "";
+    elements.migrateJournalRecoverySecretConfirm.value = "";
+  }
+}
+
 function renderAuthState() {
   const signedIn = Boolean(authSession?.user);
   elements.accountSignedOutPanel.hidden = signedIn && !authRecoveryMode;
@@ -2495,6 +2675,9 @@ function renderAuthUnavailable() {
     elements.showChangeJournalSecretButton,
     elements.saveChangeJournalSecretButton,
     elements.cancelChangeJournalSecretButton,
+    elements.showMigrateJournalKeyButton,
+    elements.saveMigrateJournalKeyButton,
+    elements.cancelMigrateJournalKeyButton,
     elements.cloudBackupButton,
     elements.cloudRestoreButton,
     elements.confirmCloudRestoreButton,
@@ -4079,6 +4262,10 @@ function bindEvents() {
   elements.saveChangeJournalSecretButton.addEventListener("click", saveChangedJournalSecret);
   elements.cancelChangeJournalSecretButton.addEventListener("click", cancelChangeJournalSecret);
   elements.changeJournalSecretForm.addEventListener("submit", (event) => event.preventDefault());
+  elements.showMigrateJournalKeyButton.addEventListener("click", showMigrateJournalKey);
+  elements.saveMigrateJournalKeyButton.addEventListener("click", migrateOlderJournalKey);
+  elements.cancelMigrateJournalKeyButton.addEventListener("click", cancelMigrateJournalKey);
+  elements.migrateJournalKeyForm.addEventListener("submit", (event) => event.preventDefault());
   elements.cloudBackupButton.addEventListener("click", backUpNow);
   elements.cloudRestoreButton.addEventListener("click", startCloudRestore);
   elements.confirmCloudRestoreButton.addEventListener("click", confirmCloudRestoreWithSecret);

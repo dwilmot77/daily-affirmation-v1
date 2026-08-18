@@ -258,6 +258,23 @@
                   <button type="button" id="cancelChangeJournalSecretButton">Cancel</button>
                 </div>
               </form>
+              <button type="button" id="showMigrateJournalKeyButton" hidden>Migrate Older Journal Key</button>
+              <form class="journal-encryption-form" id="migrateJournalKeyForm" hidden>
+                <p class="field-note" id="migrateJournalKeyDescription">
+                  Use this only for older journal keys that cannot use Change Recovery Secret. Your journal is decrypted and re-encrypted locally before the cloud backup is switched.
+                </p>
+                <label for="migrateJournalRecoverySecret" id="migrateJournalRecoverySecretLabel">New recovery secret</label>
+                <input id="migrateJournalRecoverySecret" type="password" autocomplete="new-password" />
+                <label for="migrateJournalRecoverySecretConfirm" id="migrateJournalRecoverySecretConfirmLabel">Confirm new recovery secret</label>
+                <input id="migrateJournalRecoverySecretConfirm" type="password" autocomplete="new-password" />
+                <p class="field-note" id="migrateJournalKeyWarning">
+                  This migration is for older journal keys that cannot use Change Recovery Secret. Your old recovery secret will no longer restore your journal after migration succeeds.
+                </p>
+                <div class="account-actions" aria-label="Migrate older journal key actions">
+                  <button type="button" id="saveMigrateJournalKeyButton">Migrate journal key</button>
+                  <button type="button" id="cancelMigrateJournalKeyButton">Cancel</button>
+                </div>
+              </form>
             </div>
             <button type="button" id="cloudBackupButton">Back up now</button>
             <button type="button" id="cloudRestoreButton">Restore from cloud</button>
