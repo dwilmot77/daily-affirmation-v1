@@ -221,89 +221,103 @@
           </div>
 
           <div id="accountSignedInPanel" hidden>
-            <p id="signedInEmail">Signed in as: </p>
-            <div class="journal-encryption-panel" id="journalEncryptionPanel">
-              <p class="field-note" id="journalEncryptionStatus">Journal cloud encryption: Not set up</p>
-              <p class="field-note" id="journalEncryptionDescription">
-                Set up a recovery secret so journal text is encrypted on this device before cloud backup.
-              </p>
-              <button type="button" id="showJournalEncryptionSetupButton">Set up journal encryption</button>
-              <form class="journal-encryption-form" id="journalEncryptionForm" hidden>
-                <label for="journalRecoverySecret" id="journalRecoverySecretLabel">Recovery secret</label>
-                <input id="journalRecoverySecret" type="password" autocomplete="new-password" />
-                <label for="journalRecoverySecretConfirm" id="journalRecoverySecretConfirmLabel">Confirm recovery secret</label>
-                <input id="journalRecoverySecretConfirm" type="password" autocomplete="new-password" />
-                <p class="field-note" id="journalEncryptionWarning">
-                  Save this recovery secret somewhere private. If it is lost, encrypted journal entries may not be recoverable on a new device.
-                </p>
-                <div class="account-actions" aria-label="Journal encryption actions">
-                  <button type="button" id="saveJournalEncryptionButton">Save recovery secret</button>
-                  <button type="button" id="cancelJournalEncryptionButton">Cancel</button>
-                </div>
-              </form>
-              <button type="button" id="showChangeJournalSecretButton" hidden>Change Recovery Secret</button>
-              <form class="journal-encryption-form" id="changeJournalSecretForm" hidden>
-                <p class="field-note" id="changeJournalSecretDescription">
-                  Change Recovery Secret is for when this device can still unlock your journal, but you have forgotten your old recovery secret.
-                </p>
-                <label for="newJournalRecoverySecret" id="newJournalRecoverySecretLabel">New recovery secret</label>
-                <input id="newJournalRecoverySecret" type="password" autocomplete="new-password" />
-                <label for="newJournalRecoverySecretConfirm" id="newJournalRecoverySecretConfirmLabel">Confirm new recovery secret</label>
-                <input id="newJournalRecoverySecretConfirm" type="password" autocomplete="new-password" />
-                <p class="field-note" id="changeJournalSecretWarning">
-                  Your old recovery secret will no longer restore your journal. Save your new recovery secret somewhere safe.
-                </p>
-                <div class="account-actions" aria-label="Change recovery secret actions">
-                  <button type="button" id="saveChangeJournalSecretButton">Save new recovery secret</button>
-                  <button type="button" id="cancelChangeJournalSecretButton">Cancel</button>
-                </div>
-              </form>
-              <button type="button" id="showMigrateJournalKeyButton" hidden>Migrate Older Journal Key</button>
-              <form class="journal-encryption-form" id="migrateJournalKeyForm" hidden>
-                <p class="field-note" id="migrateJournalKeyDescription">
-                  Use this only for older journal keys that cannot use Change Recovery Secret. Your journal is decrypted and re-encrypted locally before the cloud backup is switched.
-                </p>
-                <label for="migrateJournalRecoverySecret" id="migrateJournalRecoverySecretLabel">New recovery secret</label>
-                <input id="migrateJournalRecoverySecret" type="password" autocomplete="new-password" />
-                <label for="migrateJournalRecoverySecretConfirm" id="migrateJournalRecoverySecretConfirmLabel">Confirm new recovery secret</label>
-                <input id="migrateJournalRecoverySecretConfirm" type="password" autocomplete="new-password" />
-                <p class="field-note" id="migrateJournalKeyWarning">
-                  This migration is for older journal keys that cannot use Change Recovery Secret. Your old recovery secret will no longer restore your journal after migration succeeds.
-                </p>
-                <div class="account-actions" aria-label="Migrate older journal key actions">
-                  <button type="button" id="saveMigrateJournalKeyButton">Migrate journal key</button>
-                  <button type="button" id="cancelMigrateJournalKeyButton">Cancel</button>
-                </div>
-              </form>
-            </div>
-            <button type="button" id="cloudBackupButton">Back up now</button>
-            <button type="button" id="cloudRestoreButton">Restore from cloud</button>
-            <form class="journal-encryption-form" id="cloudRestoreForm" hidden>
-              <label for="cloudRestoreSecret" id="cloudRestoreSecretLabel">Journal recovery secret</label>
-              <input id="cloudRestoreSecret" type="password" autocomplete="current-password" />
-              <p class="field-note" id="cloudRestoreSecretNote">
-                Enter your recovery secret to unlock encrypted journal entries before restoring them to this device.
-              </p>
-              <div class="account-actions" aria-label="Cloud restore actions">
-                <button type="button" id="confirmCloudRestoreButton">Restore with recovery secret</button>
-                <button type="button" id="cancelCloudRestoreButton">Cancel</button>
+            <section class="account-subsection" aria-labelledby="signedInAccountHeading">
+              <h4 id="signedInAccountHeading">Account</h4>
+              <p id="signedInEmail">Signed in as: </p>
+              <button type="button" class="secondary-button compact-button" id="signOutButton">Sign out</button>
+            </section>
+
+            <section class="account-subsection" aria-labelledby="cloudBackupHeading">
+              <h4 id="cloudBackupHeading">Cloud Backup</h4>
+              <p class="field-note" id="lastCloudBackupStatus">Last cloud backup: Never</p>
+              <div class="account-actions compact-actions" aria-label="Cloud backup actions">
+                <button type="button" id="cloudBackupButton">Back up now</button>
+                <button type="button" class="secondary-button" id="cloudRestoreButton">Restore from cloud</button>
               </div>
-            </form>
-            <p class="field-note" id="lastCloudBackupStatus">Last cloud backup: Never</p>
-            <button type="button" id="signOutButton">Sign out</button>
+              <form class="journal-encryption-form" id="cloudRestoreForm" hidden>
+                <label for="cloudRestoreSecret" id="cloudRestoreSecretLabel">Journal recovery secret</label>
+                <input id="cloudRestoreSecret" type="password" autocomplete="current-password" />
+                <p class="field-note" id="cloudRestoreSecretNote">
+                  Enter your recovery secret to unlock encrypted journal entries before restoring them to this device.
+                </p>
+                <div class="account-actions compact-actions" aria-label="Cloud restore actions">
+                  <button type="button" id="confirmCloudRestoreButton">Restore with recovery secret</button>
+                  <button type="button" class="secondary-button" id="cancelCloudRestoreButton">Cancel</button>
+                </div>
+              </form>
+              <p class="field-note" id="accountNote">Signing in does not upload or sync your saved data yet.</p>
+            </section>
+
+            <details class="account-subsection journal-security-details" id="journalSecurityDetails">
+              <summary id="journalSecuritySummary">Journal Security · Protected</summary>
+              <div class="journal-encryption-panel" id="journalEncryptionPanel">
+                <h4 id="journalSecurityHeading">Journal Security</h4>
+                <p class="field-note" id="journalEncryptionStatus">Journal cloud encryption: Not set up</p>
+                <p class="field-note" id="journalEncryptionDescription">
+                  Set up a recovery secret so journal text is encrypted on this device before cloud backup.
+                </p>
+                <button type="button" class="secondary-button" id="showJournalEncryptionSetupButton">Set up journal encryption</button>
+                <form class="journal-encryption-form" id="journalEncryptionForm" hidden>
+                  <label for="journalRecoverySecret" id="journalRecoverySecretLabel">Recovery secret</label>
+                  <input id="journalRecoverySecret" type="password" autocomplete="new-password" />
+                  <label for="journalRecoverySecretConfirm" id="journalRecoverySecretConfirmLabel">Confirm recovery secret</label>
+                  <input id="journalRecoverySecretConfirm" type="password" autocomplete="new-password" />
+                  <p class="field-note" id="journalEncryptionWarning">
+                    Save this recovery secret somewhere private. If it is lost, encrypted journal entries may not be recoverable on a new device.
+                  </p>
+                  <div class="account-actions compact-actions" aria-label="Journal encryption actions">
+                    <button type="button" id="saveJournalEncryptionButton">Save recovery secret</button>
+                    <button type="button" class="secondary-button" id="cancelJournalEncryptionButton">Cancel</button>
+                  </div>
+                </form>
+                <button type="button" class="secondary-button" id="showChangeJournalSecretButton" hidden>Change Recovery Secret</button>
+                <form class="journal-encryption-form" id="changeJournalSecretForm" hidden>
+                  <p class="field-note" id="changeJournalSecretDescription">
+                    Change Recovery Secret is for when this device can still unlock your journal, but you have forgotten your old recovery secret.
+                  </p>
+                  <label for="newJournalRecoverySecret" id="newJournalRecoverySecretLabel">New recovery secret</label>
+                  <input id="newJournalRecoverySecret" type="password" autocomplete="new-password" />
+                  <label for="newJournalRecoverySecretConfirm" id="newJournalRecoverySecretConfirmLabel">Confirm new recovery secret</label>
+                  <input id="newJournalRecoverySecretConfirm" type="password" autocomplete="new-password" />
+                  <p class="field-note" id="changeJournalSecretWarning">
+                    Your old recovery secret will no longer restore your journal. Save your new recovery secret somewhere safe.
+                  </p>
+                  <div class="account-actions compact-actions" aria-label="Change recovery secret actions">
+                    <button type="button" id="saveChangeJournalSecretButton">Save new recovery secret</button>
+                    <button type="button" class="secondary-button" id="cancelChangeJournalSecretButton">Cancel</button>
+                  </div>
+                </form>
+                <button type="button" class="secondary-button" id="showMigrateJournalKeyButton" hidden>Migrate Older Journal Key</button>
+                <form class="journal-encryption-form" id="migrateJournalKeyForm" hidden>
+                  <p class="field-note" id="migrateJournalKeyDescription">
+                    Use this only for older journal keys that cannot use Change Recovery Secret. Your journal is decrypted and re-encrypted locally before the cloud backup is switched.
+                  </p>
+                  <label for="migrateJournalRecoverySecret" id="migrateJournalRecoverySecretLabel">New recovery secret</label>
+                  <input id="migrateJournalRecoverySecret" type="password" autocomplete="new-password" />
+                  <label for="migrateJournalRecoverySecretConfirm" id="migrateJournalRecoverySecretConfirmLabel">Confirm new recovery secret</label>
+                  <input id="migrateJournalRecoverySecretConfirm" type="password" autocomplete="new-password" />
+                  <p class="field-note" id="migrateJournalKeyWarning">
+                    This migration is for older journal keys that cannot use Change Recovery Secret. Your old recovery secret will no longer restore your journal after migration succeeds.
+                  </p>
+                  <div class="account-actions compact-actions" aria-label="Migrate older journal key actions">
+                    <button type="button" id="saveMigrateJournalKeyButton">Migrate journal key</button>
+                    <button type="button" class="secondary-button" id="cancelMigrateJournalKeyButton">Cancel</button>
+                  </div>
+                </form>
+              </div>
+            </details>
           </div>
 
-          <p class="field-note" id="accountNote">Signing in does not upload or sync your saved data yet.</p>
           <p class="save-status" id="authStatus" role="status" aria-live="polite"></p>
           <p class="save-status" id="cloudBackupStatus" role="status" aria-live="polite"></p>
         </section>
 
         <section class="settings-card" aria-labelledby="backupHeading">
-          <h3 id="backupHeading">Journal Backup & Restore</h3>
-          <p id="backupDescription">Download a private backup file or import one you saved before. No account or cloud storage is required.</p>
-          <p class="field-note" id="lastBackupStatus">Most recent backup: Never</p>
-          <button type="button" id="exportDataButton">Export My Data</button>
-          <label class="button-link file-import-label" for="importBackupInput">Import Backup</label>
+          <h3 id="backupHeading">Backup File</h3>
+          <p id="backupDescription">Save a private backup file to your device or import one you previously saved.</p>
+          <p class="field-note" id="lastBackupStatus">Most recent export: Never</p>
+          <button type="button" id="exportDataButton">Export data</button>
+          <label class="button-link file-import-label" for="importBackupInput">Import file</label>
           <input id="importBackupInput" type="file" accept="application/json,.json" hidden />
           <p class="save-status" id="backupStatus" role="status" aria-live="polite"></p>
         </section>

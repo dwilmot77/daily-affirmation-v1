@@ -700,6 +700,58 @@ button.calendar-day:hover {
   gap: 10px;
 }
 
+.account-subsection {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.account-subsection h4,
+.journal-encryption-panel h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.account-subsection p,
+.journal-encryption-panel p {
+  margin: 0;
+}
+
+.journal-security-details {
+  padding: 0;
+}
+
+.journal-security-details summary {
+  min-height: 48px;
+  padding: 12px;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 780;
+  list-style-position: inside;
+}
+
+.journal-security-details[open] summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.journal-encryption-panel {
+  padding: 12px;
+}
+
+.compact-actions {
+  gap: 8px;
+}
+
+.compact-button,
+.compact-actions button,
+.journal-encryption-panel > button {
+  min-height: 48px;
+  padding-inline: 12px;
+}
+
 .result-actions button,
 .account-actions button,
 #showJournalEncryptionSetupButton,
